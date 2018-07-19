@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Wall
   - NonPlayer
+  - GameManager
+  - Projectile
   layers:
   - Default
   - TransparentFX
@@ -16,7 +18,7 @@ TagManager:
   - 
   - 
   - PostProcessing
-  - 
+  - Lines
   - 
   - 
   - 
@@ -40,6 +42,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Lines
+    uniqueID: 2399562229
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0

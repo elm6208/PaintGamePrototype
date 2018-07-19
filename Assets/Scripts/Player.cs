@@ -7,69 +7,95 @@ public class Player : MonoBehaviour {
 
     private Rigidbody2D rbody2d;
     private Vector3 mousePos;
+
     public float speed = 0.01f;
     public float fireRate;
     private float lastShot = 0f;
-    private Color currentColor;
     public GameObject projectile;
-    public Text capturedText;
-    private int numCaptured = 0;
-    private int health = 3;
-    public bool isMainPlayer;
-    private Vector3 originalScale = Vector3.zero;
-    public int currentSize = 1;
+
+    public Color currentColor;
     
-	// Use this for initialization
-	void Start () {
+    public Text capturedText;
+    public int numCaptured = 0; //how many other players they've captured
+
+    public int maxHealth = 3;
+    public int health = 3;
+
+    public bool isMainPlayer;
+    
+    private Collider2D cCollider;
+    private GameManager gameManager;
+    private Vector2 startPosition;
+    public string playerName;
+
+    private Vector3 originalScale = Vector3.zero; //original size to revert to when captured
+    public int currentSize = 1;
+    public float width; //width of player
+    public int pWidth; // width of paint trail
+    
+
+    // Use this for initialization
+    void Start() {
         rbody2d = GetComponent<Rigidbody2D>();
         currentColor = GetComponent<SpriteRenderer>().color;
         originalScale = transform.lossyScale;
+        cCollider = GetComponent<Collider2D>();
+        gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
+        startPosition = transform.position;
+        pWidth = 3;
     }
-	
-	// Update is called once per frame
-	void Update () {
 
-        //only allow controls for the player you're controlling
-        if(isMainPlayer)
+    // Update is called once per frame
+    void Update() {
+        //if game is not over
+        if(gameManager.gameOver == false)
         {
-            // Move character towards mouse if right click is held down
-            if (Input.GetMouseButton(1))
+            //only allow controls for the player you're controlling
+            if (isMainPlayer)
             {
-                //get position to set ball to
-                transform.position = Vector3.MoveTowards(transform.position, ScreenToWorld(Input.mousePosition), speed);
-                Vector3 pos = transform.position;
-                pos.z = 0;
 
-                transform.position = pos;
+                // Move character towards mouse if right click is held down
+                if (Input.GetMouseButton(1))
+                {
+                    //get position to set ball to
+                    transform.position = Vector3.MoveTowards(transform.position, ScreenToWorld(Input.mousePosition), speed);
+                    Vector3 pos = transform.position;
+                    pos.z = 0;
+                    transform.position = pos;
 
-                //get rotation to set ball to
-                Vector3 difference = ScreenToWorld(Input.mousePosition) - transform.position;
-                difference.Normalize();
-                float z_rotation = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
-                transform.rotation = Quaternion.Euler(0f, 0f, z_rotation);
+                    //get rotation to set ball to
+                    Vector3 difference = ScreenToWorld(Input.mousePosition) - transform.position;
+                    difference.Normalize();
+                    float z_rotation = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
+                    transform.rotation = Quaternion.Euler(0f, 0f, z_rotation);
+                }
+                //on left click, fire a projectile
+                if (Input.GetMouseButton(0))
+                {
+
+                    if (Time.time > fireRate + lastShot)
+                    {
+                        FireProjectile();
+                        lastShot = Time.time;
+                    }
+
+                }
+
             }
-            if (Input.GetMouseButton(0))
+            //temp behavior for other players, they just shoot repeatedly
+            if (!isMainPlayer)
             {
                 if (Time.time > fireRate + lastShot)
                 {
                     FireProjectile();
                     lastShot = Time.time;
                 }
-
             }
-        }
-        //temp behavior for other players, they just shoot repeatedly
-        if(!isMainPlayer)
-        {
-            if (Time.time > fireRate + lastShot)
-            {
-                FireProjectile();
-                lastShot = Time.time;
-            }
+            
         }
 
-        
-	}
+    }
+    
 
     // Get world position of mouse click
     Vector3 ScreenToWorld(Vector2 screenPos)
@@ -108,12 +134,17 @@ public class Player : MonoBehaviour {
             health -= 1;
             if (health <= 0)
             {
+                //when player is killed
                 currentColor = c;
                 GetComponent<SpriteRenderer>().color = currentColor;
                 attackingPlayer.GetComponent<Player>().Capture(this);
                 health = 3;
+                maxHealth = 3;
                 transform.localScale = originalScale;
                 currentSize = 1;
+                width = cCollider.bounds.size.x;
+                pWidth = 3;
+                transform.position = startPosition;
             }
         }
         
@@ -130,12 +161,22 @@ public class Player : MonoBehaviour {
     {
         //increase size by 1/2 of captured player's size, ints are rounded
         int toIncrease = ((capturedPlayer.currentSize + 1) / 2);
-
+        
         //grow after capturing
         this.gameObject.transform.localScale += ((new Vector3(0.5F, 0.5F, 0)) * toIncrease);
 
         currentSize += toIncrease;
         numCaptured += 1;
+        width = cCollider.bounds.size.x;
+
+        //calculate new health with size scaling
+        int newHealth = (2 + currentSize) - (maxHealth - health);
+        health = newHealth;
+        maxHealth = 2 + currentSize;
+
+        //increase trail width with every 3 captured
+        //scaling will likely need to be adjusted later
+        pWidth = (3 + Mathf.FloorToInt((currentSize - 1) / 3));
 
         if(isMainPlayer)
         {

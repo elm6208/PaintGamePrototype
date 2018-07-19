@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//controls bullet objects being fired by players
 public class Projectile : MonoBehaviour {
 
     private Rigidbody2D rbody2d;
@@ -32,14 +33,14 @@ public class Projectile : MonoBehaviour {
             Destroy(this.gameObject);
         }
         //hit an "enemy"
-        if(col.tag == "NonPlayer" && parentPlayer.isMainPlayer)
+        if(col.tag == "NonPlayer")
         {
             
             Color c = GetComponent<SpriteRenderer>().color;
             col.GetComponent<Player>().TakeHit(c, parentPlayer);
         }
         //another player hits you
-        if(col.tag == "Player" && !parentPlayer.isMainPlayer)
+        if(col.tag == "Player")
         {
             Color c = GetComponent<SpriteRenderer>().color;
             col.GetComponent<Player>().TakeHit(c, parentPlayer);
