@@ -27,7 +27,7 @@ public class HealthBar : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         //currently updates every frame, could be changed to only update when taking hits/regenerating health
-        if(rectT != null)
+        if(rectT != null && p != null)
         {
             //update health bar width and position
             barDisplay = (float)p.health / (float)p.maxHealth;

@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 
-public class Player : MonoBehaviour {
+public class Player : NetworkBehaviour {
 
     private Rigidbody2D rbody2d;
     private Vector3 mousePos;
@@ -13,6 +14,7 @@ public class Player : MonoBehaviour {
     private float lastShot = 0f;
     public GameObject projectile;
 
+    [SyncVar(hook ="SetColor")]
     public Color currentColor;
     
     public Text capturedText;
@@ -46,8 +48,24 @@ public class Player : MonoBehaviour {
         startPosition = transform.position;
         pWidth = 3;
         healthText = GetComponentInChildren<TextMesh>();
-        healthText.GetComponent<Renderer>().sortingOrder = GetComponent<SpriteRenderer>().sortingOrder + 1;
-        
+        //  healthText.GetComponent<Renderer>().sortingOrder = GetComponent<SpriteRenderer>().sortingOrder + 1;
+        TextureDrawing.instance.players.Add(this);
+
+    }
+
+    //I am the server running this code. Only the server can change things for everyone
+    public override void OnStartServer()
+    {
+        base.OnStartServer();
+
+        currentColor = Random.ColorHSV();
+
+    }
+
+    void SetColor(Color color)
+    {
+        GetComponent<SpriteRenderer>().color = color;
+        currentColor = color;
     }
 
     // Update is called once per frame
@@ -98,7 +116,7 @@ public class Player : MonoBehaviour {
             }
             
         }
-        healthText.text = "" + health;
+        //healthText.text = "" + health;
     }
     
 

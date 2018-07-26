@@ -8,7 +8,7 @@ public class TextureDrawing : MonoBehaviour {
 
     private Texture2D texture;
     private Renderer rend;
-    public Player[] players;
+    public List<Player> players;
     public Text colorText;
 
     public Color[] allColors;
@@ -19,8 +19,13 @@ public class TextureDrawing : MonoBehaviour {
     private float planeMaxX;
     private float planeMinY;
     private float planeMaxY;
-    
 
+    public static TextureDrawing instance;
+
+    private void Awake()
+    {
+        instance = this;
+    }
     // Use this for initialization
     void Start () {
         //set up texture
