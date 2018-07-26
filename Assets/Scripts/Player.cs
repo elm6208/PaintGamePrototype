@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 
+[RequireComponent(typeof(NetworkIdentity))]
 public class Player : NetworkBehaviour {
 
     private Rigidbody2D rbody2d;
@@ -20,10 +21,11 @@ public class Player : NetworkBehaviour {
     public Text capturedText;
     public int numCaptured = 0; //how many other players they've captured
 
+    [SyncVar]
     public int maxHealth = 3;
-    public int health = 3;
 
-    public bool isMainPlayer;
+    [SyncVar]
+    public int health = 3;
     
     private Collider2D cCollider;
     private GameManager gameManager;
@@ -31,8 +33,12 @@ public class Player : NetworkBehaviour {
     public string playerName;
 
     private Vector3 originalScale = Vector3.zero; //original size to revert to when captured
+
+    [SyncVar]
     public int currentSize = 1;
+    [SyncVar]
     public float width; //width of player
+    [SyncVar]
     public int pWidth; // width of paint trail
 
     private TextMesh healthText;
@@ -76,7 +82,7 @@ public class Player : NetworkBehaviour {
         if(gameManager.gameOver == false)
         {
             //only allow controls for the player you're controlling
-            if (isMainPlayer)
+            if (isLocalPlayer)
             {
 
                 // Move character towards mouse if right click is held down
@@ -100,7 +106,7 @@ public class Player : NetworkBehaviour {
 
                     if (Time.time > fireRate + lastShot)
                     {
-                        FireProjectile();
+                        CmdFireProjectile();
                         lastShot = Time.time;
                     }
 
@@ -108,11 +114,11 @@ public class Player : NetworkBehaviour {
 
             }
             //temp behavior for other players, they just shoot repeatedly
-            if (!isMainPlayer)
+            if (isServer)
             {
                 if (Time.time > fireRate + lastShot)
                 {
-                    FireProjectile();
+                    CmdFireProjectile();
                     lastShot = Time.time;
                 }
             }
@@ -142,37 +148,43 @@ public class Player : NetworkBehaviour {
     }
 
     //When firing, instantiates a new projectile and sets its color to the player's color
-    private void FireProjectile()
+    [Command]
+    private void CmdFireProjectile()
     {
-        GameObject clone;
-        clone = Instantiate(projectile, transform.position + 0.5f * transform.right, transform.rotation) as GameObject;
+        
+        GameObject clone = Instantiate(projectile, transform.position + 0.5f * transform.right, transform.rotation) as GameObject;
         clone.GetComponent<SpriteRenderer>().color = currentColor;
         clone.GetComponent<Projectile>().parentPlayer = this.gameObject.GetComponent<Player>();
+        NetworkServer.Spawn(clone);
+        
+
         
     }
 
     //hit by another player's projectile
     public void TakeHit(Color c, Player attackingPlayer)
     {
-        if(currentColor != c)
+        if (isServer)
         {
-            health -= 1;
-            if (health <= 0)
+            if (currentColor != c)
             {
-                //when player is killed
-                currentColor = c;
-                GetComponent<SpriteRenderer>().color = currentColor;
-                attackingPlayer.GetComponent<Player>().Capture(this);
-                health = 3;
-                maxHealth = 3;
-                transform.localScale = originalScale;
-                currentSize = 1;
-                width = cCollider.bounds.size.x;
-                pWidth = 3;
-                transform.position = startPosition;
+                health -= 1;
+                if (health <= 0)
+                {
+                    //when player is killed
+                    currentColor = c;
+                    GetComponent<SpriteRenderer>().color = currentColor;
+                    attackingPlayer.GetComponent<Player>().Capture(this);
+                    health = 3;
+                    maxHealth = 3;
+                    transform.localScale = originalScale;
+                    currentSize = 1;
+                    width = cCollider.bounds.size.x;
+                    pWidth = 3;
+                    transform.position = startPosition;
+                }
             }
         }
-        
     }
 
     //start ball off moving

@@ -129,7 +129,6 @@ MonoBehaviour:
   numCaptured: 0
   maxHealth: 3
   health: 3
-  isMainPlayer: 1
   playerName: 
   currentSize: 1
   width: 0
