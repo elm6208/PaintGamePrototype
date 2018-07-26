@@ -45,7 +45,8 @@ public class Player : NetworkBehaviour {
 
     private TextMesh healthText;
 
-    public Camera PlayerCamera;
+    public GameObject PlayerCameraPrefab;
+    public GameObject PlayerCameraObject;
 
     static int which = 0;
     // Use this for initialization
@@ -61,35 +62,28 @@ public class Player : NetworkBehaviour {
 
         TextureDrawing.instance.players.Add(this);
 
-        if (PlayerCamera != null)
-        {
-            if (isLocalPlayer)
-            {
-                PlayerCamera.enabled = true;
-            }
-            else
-            {
-                PlayerCamera.enabled = false;
-            }
-        }
 
         //syncvars can only change on server. color must be set by server.
         if (isServer)
         {
             pWidth = 3;
-            Color32[] colors = new Color32[]{
-                new Color32(255,215,214,255),
-                new Color32(226,255,214,255),
-                new Color32(254,255,214,255),
-                new Color32(242,214,255,255)
-                };
-
+            Color[] colors = TextureDrawing.instance.allColors;
              
 
             //int which = (int)Random.Range(0, colors.Length - 1);
             currentColor = colors[which];
 
             which = (which + 1) % colors.Length; 
+        }
+
+        if(isLocalPlayer)
+        {
+            Debug.Log("IS LOCAL PLAYER");
+            PlayerCameraObject = Instantiate(PlayerCameraPrefab);
+
+            var campos = this.transform.position;
+            campos.z = PlayerCameraObject.transform.position.z;
+            PlayerCameraObject.transform.position = campos;
         }
     }
 
@@ -119,7 +113,12 @@ public class Player : NetworkBehaviour {
                 if (Input.GetMouseButton(0))
                 {
                     //get position to set ball to
-                    transform.position = Vector3.MoveTowards(transform.position, ScreenToWorld(Input.mousePosition), speed);
+                    var target = ScreenToWorld(Input.mousePosition);
+                    transform.position = Vector3.MoveTowards(transform.position, target, speed);
+                    var campos = Vector3.MoveTowards(PlayerCameraObject.transform.position, target, speed * 0.9f);
+                    campos.z = PlayerCameraObject.transform.position.z;
+                    PlayerCameraObject.transform.position = campos;
+                                      
                     Vector3 pos = transform.position;
                     pos.z = 0;
                     transform.position = pos;
@@ -168,7 +167,7 @@ public class Player : NetworkBehaviour {
     Vector3 ScreenToWorld(Vector2 screenPos)
     {
         //Create ray
-        Ray ray = Camera.main.ScreenPointToRay(screenPos);
+        Ray ray = PlayerCameraObject.GetComponent<Camera>().ScreenPointToRay(screenPos);
         RaycastHit hit;
 
         // ray hit an object, return hit position
@@ -248,30 +247,32 @@ public class Player : NetworkBehaviour {
     //Capture another player
     public void Capture(Player capturedPlayer)
     {
-        //increase size by 1/2 of captured player's size, ints are rounded
-        int toIncrease = ((capturedPlayer.currentSize + 1) / 2);
-        
-        //grow after capturing
-        this.gameObject.transform.localScale += ((new Vector3(0.5F, 0.5F, 0)) * toIncrease);
-
-        currentSize += toIncrease;
-        numCaptured += 1;
-        width = cCollider.bounds.size.x;
-
-        //calculate new health with size scaling
-        int newHealth = (2 + currentSize) - (maxHealth - health);
-        health = newHealth;
-        maxHealth = 2 + currentSize;
-
-        //increase trail width with every 3 captured
-        //scaling will likely need to be adjusted later
-        pWidth = (3 + Mathf.FloorToInt((currentSize - 1) / 3));
-
-        if(isLocalPlayer && capturedText != null)
+        if (isServer)
         {
-            capturedText.text = "Captured: " + numCaptured;
+            //increase size by 1/2 of captured player's size, ints are rounded
+            int toIncrease = ((capturedPlayer.currentSize + 1) / 2);
+
+            //grow after capturing
+            this.gameObject.transform.localScale += ((new Vector3(0.5F, 0.5F, 0)) * toIncrease);
+
+            currentSize += toIncrease;
+            numCaptured += 1;
+            width = cCollider.bounds.size.x;
+
+            //calculate new health with size scaling
+            int newHealth = (2 + currentSize) - (maxHealth - health);
+            health = newHealth;
+            maxHealth = 2 + currentSize;
+
+            //increase trail width with every 3 captured
+            //scaling will likely need to be adjusted later
+            pWidth = (3 + Mathf.FloorToInt((currentSize - 1) / 3));
+
+            if (isLocalPlayer && capturedText != null)
+            {
+                capturedText.text = "Captured: " + numCaptured;
+            }
         }
-        
     }
 
 

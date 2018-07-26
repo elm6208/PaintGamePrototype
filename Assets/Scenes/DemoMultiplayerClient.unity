@@ -440,7 +440,8 @@ MonoBehaviour:
   currentSize: 1
   width: 0
   pWidth: 0
-  PlayerCamera: {fileID: 0}
+  PlayerCameraPrefab: {fileID: 0}
+  PlayerCameraObject: {fileID: 0}
 --- !u!50 &262814825
 Rigidbody2D:
   serializedVersion: 4
@@ -2182,7 +2183,8 @@ MonoBehaviour:
   currentSize: 1
   width: 0
   pWidth: 0
-  PlayerCamera: {fileID: 0}
+  PlayerCameraPrefab: {fileID: 0}
+  PlayerCameraObject: {fileID: 0}
 --- !u!50 &1775817251
 Rigidbody2D:
   serializedVersion: 4
@@ -2545,7 +2547,8 @@ MonoBehaviour:
   currentSize: 1
   width: 0
   pWidth: 0
-  PlayerCamera: {fileID: 0}
+  PlayerCameraPrefab: {fileID: 0}
+  PlayerCameraObject: {fileID: 0}
 --- !u!114 &1954041974
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2744,7 +2747,8 @@ MonoBehaviour:
   currentSize: 1
   width: 0
   pWidth: 0
-  PlayerCamera: {fileID: 0}
+  PlayerCameraPrefab: {fileID: 0}
+  PlayerCameraObject: {fileID: 0}
 --- !u!50 &1992587451
 Rigidbody2D:
   serializedVersion: 4

@@ -71,9 +71,9 @@ public class TextureDrawing : MonoBehaviour {
                         Vector2 uv;
                         uv.x = (hit.point.x - hit.collider.bounds.min.x) / hit.collider.bounds.size.x;
                         uv.y = (hit.collider.bounds.min.y - hit.point.y) / hit.collider.bounds.size.y;
+                   // Debug.Log("uv:"+uv);
 
                         Color pColor = p.currentColor;
-                        
                         /*
                         // Other method to paint it with the player's color, SetPixel is slower than SetPixels, this also doesn't adjust for scaling
                         // However the other approach may be a performance issue as well, still calling SetPixels multiple times
@@ -127,9 +127,6 @@ public class TextureDrawing : MonoBehaviour {
                         }
 
                         texture.SetPixels((int)xPos, (int)yPos, p.pWidth, p.pWidth, colors);
-
-
-
                     }
                 
                 
