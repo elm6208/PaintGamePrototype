@@ -12,6 +12,8 @@ public class Player : NetworkBehaviour {
 
     public float speed = 0.01f;
     public float fireRate;
+
+    [SyncVar]
     private float lastShot = 0f;
     public GameObject projectile;
 
@@ -86,7 +88,7 @@ public class Player : NetworkBehaviour {
             {
 
                 // Move character towards mouse if right click is held down
-                if (Input.GetMouseButton(1))
+                if (Input.GetMouseButton(0))
                 {
                     //get position to set ball to
                     transform.position = Vector3.MoveTowards(transform.position, ScreenToWorld(Input.mousePosition), speed);
@@ -101,20 +103,26 @@ public class Player : NetworkBehaviour {
                     transform.rotation = Quaternion.Euler(0f, 0f, z_rotation);
                 }
                 //on left click, fire a projectile
-                if (Input.GetMouseButton(0))
+                if (Input.GetMouseButton(1) || Input.GetKeyUp(KeyCode.Space))
                 {
 
                     if (Time.time > fireRate + lastShot)
                     {
-                        FireProjectile();
-                        lastShot = Time.time;
+                        if (isServer)
+                        {
+                            FireProjectile();
+
+                        } else
+                        {
+                            CmdFireProjectile();
+                        }
                     }
 
                 }
 
-            }
+            } else
             //temp behavior for other players, they just shoot repeatedly
-            if (isServer)
+            if (isServer && playerControllerId == -1)
             {
                 if (Time.time > fireRate + lastShot)
                 {
@@ -151,14 +159,28 @@ public class Player : NetworkBehaviour {
     //This can only be run by the server!
     private void FireProjectile()
     {
-        GameObject clone = Instantiate(projectile) as GameObject;
-        NetworkServer.Spawn(clone);
+        if (isServer)
+        {
+            GameObject clone = Instantiate(projectile) as GameObject;
+            NetworkServer.Spawn(clone);
 
-        clone.GetComponent<SpriteRenderer>().color = currentColor;
-        clone.GetComponent<Projectile>().parentPlayer = this.gameObject.GetComponent<Player>();
+            var proj = clone.GetComponent<Projectile>();
+            proj.color = currentColor;
+            clone.GetComponent<Projectile>().parentPlayer = this.gameObject.GetComponent<Player>();
 
-        clone.transform.position = transform.position + 0.5f * transform.right;
-        clone.transform.rotation = transform.rotation;   
+            clone.transform.position = transform.position + 0.5f * transform.right;
+            clone.transform.rotation = transform.rotation;
+            lastShot = Time.time;
+
+        }
+    }
+
+    //When firing, instantiates a new projectile and sets its color to the player's color
+    //This can be called by clients
+    [Command]
+    private void CmdFireProjectile()
+    {
+        FireProjectile();
     }
 
     //hit by another player's projectile
@@ -173,7 +195,8 @@ public class Player : NetworkBehaviour {
                 {
                     //when player is killed
                     currentColor = c;
-                    GetComponent<SpriteRenderer>().color = currentColor;
+
+                    //GetComponent<SpriteRenderer>().color = currentColor;
                     attackingPlayer.GetComponent<Player>().Capture(this);
                     health = 3;
                     maxHealth = 3;

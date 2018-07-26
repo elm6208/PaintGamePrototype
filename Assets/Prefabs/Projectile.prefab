@@ -110,7 +110,7 @@ MonoBehaviour:
     i13: 132
     i14: 140
     i15: 100
-  m_ServerOnly: 1
+  m_ServerOnly: 0
   m_LocalPlayerAuthority: 0
 --- !u!114 &114386275893101616
 MonoBehaviour:
@@ -123,6 +123,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b789e0b78e6a4c649acec49220eb7394, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  color: {r: 0, g: 0, b: 0, a: 0}
   parentPlayer: {fileID: 0}
 --- !u!114 &114876469538845472
 MonoBehaviour:
