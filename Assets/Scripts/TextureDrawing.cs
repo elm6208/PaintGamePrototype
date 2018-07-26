@@ -8,7 +8,7 @@ public class TextureDrawing : NetworkBehaviour {
 
     private Texture2D texture;
     private Renderer rend;
-    public List<Player> players;
+    
     public Text colorText;
 
     public Color[] allColors;
@@ -25,6 +25,12 @@ public class TextureDrawing : NetworkBehaviour {
     public static TextureDrawing instance;
 
     protected int scale = 2;
+
+    protected Dictionary<Player, Vector3> previousPositions = new Dictionary<Player, Vector3>();
+    protected float threshhold = 0.1f;
+
+    public Color emptyColor = Color.white;
+
     private void Awake()
     {
         instance = this;
@@ -45,8 +51,8 @@ public class TextureDrawing : NetworkBehaviour {
         planeMaxX = planeWidth;
         planeMinY = 0;
         planeMaxY = planeHeight;
-        
-        
+
+        ResetBoard();
     }
 	
 	// Update is called once per frame
@@ -59,14 +65,28 @@ public class TextureDrawing : NetworkBehaviour {
 
         if (texture != null)
         {
-            
+
             // leave a paint trail behind each player
+            var players =(NetworkManager.singleton as GameNetworkManager).players;
             foreach(Player p in players)
             {
                 if(p == null)
                 {
                     continue;
                 }
+                var currentPosition = p.transform.position;
+
+                //only update if player moved
+                if (previousPositions.ContainsKey(p))
+                {
+                    var lastPosition = previousPositions[p];
+                    if(Vector3.Distance(currentPosition, lastPosition) < threshhold)
+                    {
+                        continue;
+                    }
+                }
+                previousPositions[p] = currentPosition;
+
                     //raycast down to find the spot below the player
                     Vector3 direction = new Vector3(0f, 0f, 1f);
                     Ray ray = new Ray(new Vector3(p.transform.position.x, p.transform.position.y, p.transform.position.z), direction);
@@ -214,6 +234,23 @@ public class TextureDrawing : NetworkBehaviour {
         }
 
         colorText.text = displayText;
+    }
+
+    [ClientRpc]
+    public void RpcReset()
+    {
+        ResetBoard();
+    }
+
+    public void ResetBoard()
+    {
+        Color[] pixels = new Color[texture.width * texture.height];
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            pixels[i] = emptyColor;
+        }
+        texture.SetPixels(pixels);
+        texture.Apply();
     }
 
     //cover area based on given color and position

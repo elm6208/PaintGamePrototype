@@ -6,19 +6,39 @@ using UnityEngine.Networking;
 
 public class GameManager : NetworkBehaviour {
     [SyncVar]
+    public float TotalTime = 200f;
     public float timeLeft;
     public Text endGameText;
     public Text timerText;
-
+    
     [SyncVar]
     public bool gameOver;
+
+    [SyncVar]
+    public bool gameIsActive = false;
 
     public Player topPlayer;
     private List<GameObject> allPlayers;
     public TextureDrawing textureDrawing;
 
+    public bool AutoStart = false;
+
     // Use this for initialization
     void Start () {
+        gameIsActive = false;
+        if (AutoStart)
+        {
+            StartGame();
+        }
+    }
+
+    public void StartGame()
+    {
+        if (!isServer)
+            return;
+
+        timeLeft = TotalTime;
+        gameIsActive = true;
         gameOver = false;
         //get all players
         allPlayers = new List<GameObject>();
@@ -28,7 +48,7 @@ public class GameManager : NetworkBehaviour {
         allPlayers.AddRange(nonPlayers);
 
         //name them
-        for(int i = 0; i < allPlayers.Count; i++)
+        for (int i = 0; i < allPlayers.Count; i++)
         {
             allPlayers[i].GetComponent<Player>().playerName = "Player " + (i + 1);
         }
@@ -37,16 +57,16 @@ public class GameManager : NetworkBehaviour {
 	// Update is called once per frame
 	void Update () {
         // count down and display time remaining
-        if(timeLeft > 0)
+        if(gameIsActive && timeLeft > 0)
         {
             timeLeft -= Time.deltaTime;
             timerText.text = "Time Remaining: " + (int)timeLeft;
         }
 
         //only let the server trigger end game
-        if (isServer)
+        if (gameIsActive && isServer)
         {
-      
+            DetermineIfEndGame();
         }
 	}
 

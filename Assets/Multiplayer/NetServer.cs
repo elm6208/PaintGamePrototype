@@ -26,6 +26,8 @@ public class NetServer : NetworkDiscovery
 
             if(useNetworkManager)
             {
+                Debug.Log("NetworkManager:" + NetworkManager.singleton);
+
                 if (RunAsHost)
                 {
                     Debug.Log("run as host");

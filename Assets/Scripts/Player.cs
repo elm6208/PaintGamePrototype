@@ -20,7 +20,6 @@ public class Player : NetworkBehaviour {
     [SyncVar(hook ="SetColor")]
     public Color currentColor;
     
-    public Text capturedText;
     public int numCaptured = 0; //how many other players they've captured
 
     [SyncVar]
@@ -31,7 +30,7 @@ public class Player : NetworkBehaviour {
     
     private Collider2D cCollider;
     private GameManager gameManager;
-    private Vector2 startPosition;
+
     public string playerName;
 
     public static Player localPlayer;
@@ -44,10 +43,10 @@ public class Player : NetworkBehaviour {
     [SyncVar]
     public int pWidth; // width of paint trail
 
-    private TextMesh healthText;
-
     public GameObject PlayerCameraPrefab;
     public GameObject PlayerCameraObject;
+
+    public TextMesh healthText;
 
     static int which = 0;
     // Use this for initialization
@@ -58,11 +57,6 @@ public class Player : NetworkBehaviour {
         originalScale = transform.lossyScale;
         cCollider = GetComponent<Collider2D>();
         gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
-        startPosition = transform.position;
-        healthText = GetComponentInChildren<TextMesh>();
-
-        TextureDrawing.instance.players.Add(this);
-
 
         //syncvars can only change on server. color must be set by server.
         if (isServer)
@@ -159,7 +153,11 @@ public class Player : NetworkBehaviour {
                     }
                 }
 
-            } else
+                healthText.text = "" + health;
+
+
+            }
+            else
             //temp behavior for non-human players, they just shoot repeatedly
             if ( playerControllerId == -1)
             {
@@ -171,7 +169,6 @@ public class Player : NetworkBehaviour {
             }
             
         }
-        //healthText.text = "" + health;
     }
     
 
@@ -236,6 +233,13 @@ public class Player : NetworkBehaviour {
         }
     }
 
+    public void ScramblePosition()
+    {
+        transform.position = NetworkManager.singleton.GetStartPosition().position;
+        RpcResetCamera();
+
+    }
+
     //hit by another player's projectile
     public void TakeHit(Color c, Player attackingPlayer)
     {
@@ -257,8 +261,7 @@ public class Player : NetworkBehaviour {
                     currentSize = 1;
                     width = cCollider.bounds.size.x;
                     pWidth = 3;
-                    transform.position = startPosition;
-                    RpcResetCamera();
+                    ScramblePosition();
                 }
             }
         }
@@ -273,6 +276,10 @@ public class Player : NetworkBehaviour {
     //Capture another player
     public void Capture(Player capturedPlayer)
     {
+        if (isLocalPlayer)
+        {
+            PlayerObjectReferences.singleton.capturedText.text = "Captured: " + numCaptured;
+        }
         if (isServer)
         {
             //increase size by 1/2 of captured player's size, ints are rounded
@@ -294,10 +301,7 @@ public class Player : NetworkBehaviour {
             //scaling will likely need to be adjusted later
             pWidth = (3 + Mathf.FloorToInt((currentSize - 1) / 3));
 
-            if (isLocalPlayer && capturedText != null)
-            {
-                capturedText.text = "Captured: " + numCaptured;
-            }
+
         }
     }
 
