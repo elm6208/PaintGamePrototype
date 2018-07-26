@@ -58,8 +58,10 @@ public class Player : NetworkBehaviour {
     {
         base.OnStartServer();
 
-        currentColor = Random.ColorHSV();
-
+        if (isServer)
+        {
+            currentColor = Random.ColorHSV();
+        }
     }
 
     void SetColor(Color color)
@@ -201,7 +203,7 @@ public class Player : NetworkBehaviour {
         //scaling will likely need to be adjusted later
         pWidth = (3 + Mathf.FloorToInt((currentSize - 1) / 3));
 
-        if(isMainPlayer)
+        if(isLocalPlayer)
         {
             capturedText.text = "Captured: " + numCaptured;
         }
