@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+using UnityEngine.Networking;
 // Goes on Plane object, controls paint trails
-public class TextureDrawing : MonoBehaviour {
+public class TextureDrawing : NetworkBehaviour {
 
     private Texture2D texture;
     private Renderer rend;
@@ -12,6 +12,8 @@ public class TextureDrawing : MonoBehaviour {
     public Text colorText;
 
     public Color[] allColors;
+    protected List<int> ColorPercentages = new List<int>();
+
     public int leadingColor;
 
     //edges of plane
@@ -50,6 +52,11 @@ public class TextureDrawing : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         
+        while(ColorPercentages.Count < allColors.Length)
+        {
+            ColorPercentages.Add(0);
+        }
+
         if (texture != null)
         {
             
@@ -140,7 +147,11 @@ public class TextureDrawing : MonoBehaviour {
 
         }
 
-        CountColors();
+        if (isServer)
+        {
+            CountColors();
+        }
+        UpdateUI();
 	}
 
     // calculate how much of each color is on the canvas
@@ -172,7 +183,6 @@ public class TextureDrawing : MonoBehaviour {
         }
         
         // calculate percentages and display them
-        string displayText = "";
 
         double highestPercent = 0; //highest % of color
 
@@ -181,7 +191,8 @@ public class TextureDrawing : MonoBehaviour {
         {
             
             double percentage = (((double)colorNums[k])/((double)colors.Length));
-            displayText = displayText + "Color " + (k + 1) + ": " + (int)(percentage * 100) + "%, ";
+            ColorPercentages[k] = (int)(percentage * 100);
+
             if(percentage > highestPercent)
             {
                 highestPercent = percentage;
@@ -189,13 +200,25 @@ public class TextureDrawing : MonoBehaviour {
             }
         }
 
-        colorText.text = displayText;
 
     
     }
 
+    public void UpdateUI()
+    {
+        string displayText = "";
+
+        for (int i = 0; i < ColorPercentages.Count; i++)
+        {
+            displayText = displayText + "Color " + (i + 1) + ": " + ColorPercentages[i] + "%, ";
+        }
+
+        colorText.text = displayText;
+    }
+
     //cover area based on given color and position
-    public void PaintExplosion(Color c, Vector3 pos, int explosionDiameter)
+    [ClientRpc]
+    public void RpcPaintExplosion(Color c, Vector3 pos, int explosionDiameter)
     {
         //array of color to fill
         Color[] colors = new Color[explosionDiameter * explosionDiameter];
@@ -222,8 +245,6 @@ public class TextureDrawing : MonoBehaviour {
             //explosion location centered around pickup
             float xPos = texture.width - (uv.x * texture.width) - (explosionDiameter / 2);
             float yPos = texture.height - (-  uv.y * texture.height) - (explosionDiameter / 2);
-
-            Debug.Log("xPos: " + xPos + ", yPos: " + yPos);
 
             //check that it is not out of bounds and relocate accordingly
             if (xPos - (explosionDiameter / 2) < planeMinX)

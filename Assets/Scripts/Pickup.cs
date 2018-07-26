@@ -1,17 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class Pickup : MonoBehaviour {
-
-    private TextureDrawing textureDrawing;
+public class Pickup : NetworkBehaviour
+{
     private int explosionDiameter;
 
 	// Use this for initialization
 	void Start () {
-
-        textureDrawing = GameObject.FindGameObjectWithTag("TextureDrawing").GetComponent<TextureDrawing>();
-
         explosionDiameter = 20;
 
 	}
@@ -23,15 +20,22 @@ public class Pickup : MonoBehaviour {
 
     void OnTriggerEnter2D(Collider2D col)
     {
-        //picked up by a player
-        if (col.tag == "Player" || col.tag == "NonPlayer")
+        if (isServer)
         {
-            Color color = col.GetComponent<Player>().currentColor;
-            //trigger explosion on TextureDrawing
-            textureDrawing.PaintExplosion(color, this.gameObject.transform.position, explosionDiameter);
-            Destroy(this.gameObject);
-        }
-        
+            //picked up by a player
+            if (col.tag == "Player" || col.tag == "NonPlayer")
+            {
+                Color color = col.GetComponent<Player>().currentColor;
 
+
+                Debug.Log("player:" + col.GetComponent<Player>()+" color:"+color+" diameter:"+explosionDiameter);
+                //trigger explosion on TextureDrawing
+
+                TextureDrawing.instance.RpcPaintExplosion(color, this.gameObject.transform.position, explosionDiameter);
+                NetworkServer.Destroy(this.gameObject);
+            }
+
+
+        }
     }
 }

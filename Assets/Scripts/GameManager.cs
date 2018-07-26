@@ -2,16 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 
-public class GameManager : MonoBehaviour {
-
+public class GameManager : NetworkBehaviour {
+    [SyncVar]
     public float timeLeft;
     public Text endGameText;
     public Text timerText;
-    public TextureDrawing textureDrawing;
+
+    [SyncVar]
     public bool gameOver;
+
     public Player topPlayer;
     private List<GameObject> allPlayers;
+    public TextureDrawing textureDrawing;
 
     // Use this for initialization
     void Start () {
@@ -32,21 +36,31 @@ public class GameManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
         // count down and display time remaining
         if(timeLeft > 0)
         {
             timeLeft -= Time.deltaTime;
             timerText.text = "Time Remaining: " + (int)timeLeft;
         }
-        if(timeLeft <= 0)
+
+        //only let the server trigger end game
+        if (isServer)
         {
-            EndGame();
+      
         }
 	}
 
+    public void DetermineIfEndGame()
+    {
+        if (timeLeft <= 0)
+        {
+            RpcEndGame();
+        }
+    }
+
     // End the game
-    private void EndGame()
+    [ClientRpc]
+    private void RpcEndGame()
     {
         //display game over text
         endGameText.gameObject.SetActive(true);

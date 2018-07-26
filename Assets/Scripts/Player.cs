@@ -34,6 +34,7 @@ public class Player : NetworkBehaviour {
     private Vector2 startPosition;
     public string playerName;
 
+    public static Player localPlayer;
     private Vector3 originalScale = Vector3.zero; //original size to revert to when captured
 
     [SyncVar]
@@ -78,6 +79,7 @@ public class Player : NetworkBehaviour {
 
         if(isLocalPlayer)
         {
+            localPlayer = this;
             Debug.Log("IS LOCAL PLAYER");
             PlayerCameraObject = Instantiate(PlayerCameraPrefab);
 
@@ -111,7 +113,9 @@ public class Player : NetworkBehaviour {
 
         if (isLocalPlayer && PlayerCameraObject != null)
         {
-            var campos = Vector3.MoveTowards(PlayerCameraObject.transform.position, this.transform.position, speed * 0.9f);
+            //var campos = Vector3.MoveTowards(PlayerCameraObject.transform.position, this.transform.position, speed * 0.9f);
+
+            var campos = Vector3.Lerp(PlayerCameraObject.transform.position, this.transform.position, 0.5f * Time.deltaTime);
             campos.z = PlayerCameraObject.transform.position.z;
             PlayerCameraObject.transform.position = campos;
         }

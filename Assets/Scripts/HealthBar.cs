@@ -5,7 +5,6 @@ using UnityEngine;
 // Controls health bar in corner of screen that displays player's health
 public class HealthBar : MonoBehaviour {
 
-    public Player p;
     private float barDisplay;
     RectTransform rectT;
     private float width;
@@ -26,6 +25,7 @@ public class HealthBar : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        var p = Player.localPlayer;
         //currently updates every frame, could be changed to only update when taking hits/regenerating health
         if(rectT != null && p != null)
         {
