@@ -55,7 +55,10 @@ public class TextureDrawing : MonoBehaviour {
             // leave a paint trail behind each player
             foreach(Player p in players)
             {
-                
+                if(p == null)
+                {
+                    continue;
+                }
                     //raycast down to find the spot below the player
                     Vector3 direction = new Vector3(0f, 0f, 1f);
                     Ray ray = new Ray(new Vector3(p.transform.position.x, p.transform.position.y, p.transform.position.z), direction);

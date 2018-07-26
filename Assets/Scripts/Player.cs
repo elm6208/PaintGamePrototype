@@ -106,7 +106,7 @@ public class Player : NetworkBehaviour {
 
                     if (Time.time > fireRate + lastShot)
                     {
-                        CmdFireProjectile();
+                        FireProjectile();
                         lastShot = Time.time;
                     }
 
@@ -118,7 +118,7 @@ public class Player : NetworkBehaviour {
             {
                 if (Time.time > fireRate + lastShot)
                 {
-                    CmdFireProjectile();
+                    FireProjectile();
                     lastShot = Time.time;
                 }
             }
@@ -148,17 +148,17 @@ public class Player : NetworkBehaviour {
     }
 
     //When firing, instantiates a new projectile and sets its color to the player's color
-    [Command]
-    private void CmdFireProjectile()
+    //This can only be run by the server!
+    private void FireProjectile()
     {
-        
-        GameObject clone = Instantiate(projectile, transform.position + 0.5f * transform.right, transform.rotation) as GameObject;
+        GameObject clone = Instantiate(projectile) as GameObject;
+        NetworkServer.Spawn(clone);
+
         clone.GetComponent<SpriteRenderer>().color = currentColor;
         clone.GetComponent<Projectile>().parentPlayer = this.gameObject.GetComponent<Player>();
-        NetworkServer.Spawn(clone);
-        
 
-        
+        clone.transform.position = transform.position + 0.5f * transform.right;
+        clone.transform.rotation = transform.rotation;   
     }
 
     //hit by another player's projectile
