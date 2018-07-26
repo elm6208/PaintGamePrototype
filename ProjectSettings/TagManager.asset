@@ -8,6 +8,8 @@ TagManager:
   - NonPlayer
   - GameManager
   - Projectile
+  - Pickup
+  - TextureDrawing
   layers:
   - Default
   - TransparentFX

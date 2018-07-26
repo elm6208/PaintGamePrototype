@@ -32,6 +32,8 @@ public class Player : MonoBehaviour {
     public int currentSize = 1;
     public float width; //width of player
     public int pWidth; // width of paint trail
+
+    private TextMesh healthText;
     
 
     // Use this for initialization
@@ -43,6 +45,9 @@ public class Player : MonoBehaviour {
         gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
         startPosition = transform.position;
         pWidth = 3;
+        healthText = GetComponentInChildren<TextMesh>();
+        healthText.GetComponent<Renderer>().sortingOrder = GetComponent<SpriteRenderer>().sortingOrder + 1;
+        
     }
 
     // Update is called once per frame
@@ -93,7 +98,7 @@ public class Player : MonoBehaviour {
             }
             
         }
-
+        healthText.text = "" + health;
     }
     
 
@@ -184,4 +189,7 @@ public class Player : MonoBehaviour {
         }
         
     }
+
+
+
 }

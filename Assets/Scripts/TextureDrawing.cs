@@ -38,6 +38,7 @@ public class TextureDrawing : MonoBehaviour {
         planeMinY = 0;
         planeMaxY = planeHeight;
         
+        
     }
 	
 	// Update is called once per frame
@@ -186,5 +187,63 @@ public class TextureDrawing : MonoBehaviour {
 
     
     }
+
+    //cover area based on given color and position
+    public void PaintExplosion(Color c, Vector3 pos, int explosionDiameter)
+    {
+        //array of color to fill
+        Color[] colors = new Color[explosionDiameter * explosionDiameter];
+
+        for (int i = 0; i < colors.Length; i++)
+        {
+            colors[i] = c;
+        }
+
+        //raycast down to find the spot below the pickup
+        Vector3 direction = new Vector3(0f, 0f, 1f);
+        Ray ray = new Ray(new Vector3(pos.x, pos.y, pos.z), direction);
+        RaycastHit hit;
+
+        //if there is a hit, draw paint area
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+        {
+
+            Vector2 uv;
+            uv.x = (hit.point.x - hit.collider.bounds.min.x) / hit.collider.bounds.size.x;
+            uv.y = (hit.collider.bounds.min.y - hit.point.y) / hit.collider.bounds.size.y;
+
+
+            //explosion location centered around pickup
+            float xPos = texture.width - (uv.x * texture.width) - (explosionDiameter / 2);
+            float yPos = texture.height - (-  uv.y * texture.height) - (explosionDiameter / 2);
+
+            Debug.Log("xPos: " + xPos + ", yPos: " + yPos);
+
+            //check that it is not out of bounds and relocate accordingly
+            if (xPos - (explosionDiameter / 2) < planeMinX)
+            {
+                xPos = planeMinX + (explosionDiameter / 2);
+            }
+            if (xPos + (explosionDiameter / 2) > planeMaxX)
+            {
+                xPos = planeMaxX - explosionDiameter;
+            }
+            if (yPos - (explosionDiameter / 2) < planeMinY)
+            {
+                yPos = planeMinY + (explosionDiameter / 2);
+            }
+            if (yPos + (explosionDiameter / 2) > planeMaxY)
+            {
+                yPos = planeMaxY - explosionDiameter;
+            }
+
+            //SetPixels, Apply will be called in Update
+            texture.SetPixels((int)xPos, (int)yPos, explosionDiameter, explosionDiameter, colors);
+            
+        }
+
+        
+    }
+
 
 }

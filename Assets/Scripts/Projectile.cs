@@ -32,18 +32,13 @@ public class Projectile : MonoBehaviour {
         {
             Destroy(this.gameObject);
         }
-        //hit an "enemy"
-        if(col.tag == "NonPlayer")
+        //hit an "enemy", or another player hits you
+        if(col.tag == "NonPlayer" || col.tag == "Player")
         {
             
             Color c = GetComponent<SpriteRenderer>().color;
             col.GetComponent<Player>().TakeHit(c, parentPlayer);
         }
-        //another player hits you
-        if(col.tag == "Player")
-        {
-            Color c = GetComponent<SpriteRenderer>().color;
-            col.GetComponent<Player>().TakeHit(c, parentPlayer);
-        }
+        
     }
 }
