@@ -45,6 +45,8 @@ public class Player : NetworkBehaviour {
 
     private TextMesh healthText;
 
+    public Camera PlayerCamera;
+
     static int which = 0;
     // Use this for initialization
     void Start() {
@@ -58,6 +60,18 @@ public class Player : NetworkBehaviour {
         healthText = GetComponentInChildren<TextMesh>();
 
         TextureDrawing.instance.players.Add(this);
+
+        if (PlayerCamera != null)
+        {
+            if (isLocalPlayer)
+            {
+                PlayerCamera.enabled = true;
+            }
+            else
+            {
+                PlayerCamera.enabled = false;
+            }
+        }
 
         //syncvars can only change on server. color must be set by server.
         if (isServer)
