@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 
 public class NetServer : NetworkDiscovery
 {
-
+    protected bool RunAsHost = true;
     // Use this for initialization
     void Start()
     {
@@ -26,8 +26,18 @@ public class NetServer : NetworkDiscovery
 
             if(useNetworkManager)
             {
-                NetworkManager.singleton.StartServer();
-            }
+                if (RunAsHost)
+                {
+                    Debug.Log("run as host");
+                    NetworkManager.singleton.StartHost();
+
+                }
+                else
+                {
+                    Debug.Log("start server");
+                    NetworkManager.singleton.StartServer();
+                }
+               }
         }
         else
         {
