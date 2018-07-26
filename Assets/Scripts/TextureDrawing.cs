@@ -22,6 +22,7 @@ public class TextureDrawing : MonoBehaviour {
 
     public static TextureDrawing instance;
 
+    protected int scale = 2;
     private void Awake()
     {
         instance = this;
@@ -29,7 +30,7 @@ public class TextureDrawing : MonoBehaviour {
     // Use this for initialization
     void Start () {
         //set up texture
-        texture = new Texture2D(100, 50);
+        texture = new Texture2D(500, 200);
         rend = GetComponent<Renderer>();
         rend.material.mainTexture = texture;
         texture.filterMode = FilterMode.Point;
@@ -119,14 +120,14 @@ public class TextureDrawing : MonoBehaviour {
                         }
 
                         //make color array to draw
-                        Color[] colors = new Color[p.pWidth * p.pWidth];
+                        Color[] colors = new Color[p.pWidth * p.pWidth * scale * scale];
 
                         for (int i = 0; i < colors.Length; i++)
                         {
                             colors[i] = pColor;
                         }
 
-                        texture.SetPixels((int)xPos, (int)yPos, p.pWidth, p.pWidth, colors);
+                        texture.SetPixels((int)xPos, (int)yPos, p.pWidth * scale, p.pWidth * scale, colors);
                     }
                 
                 

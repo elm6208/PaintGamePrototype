@@ -440,6 +440,8 @@ MonoBehaviour:
   currentSize: 1
   width: 0
   pWidth: 0
+  PlayerCameraPrefab: {fileID: 0}
+  PlayerCameraObject: {fileID: 0}
 --- !u!50 &262814825
 Rigidbody2D:
   serializedVersion: 4
@@ -1027,12 +1029,12 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 410585034}
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0.01}
-  m_LocalScale: {x: 3.2008607, y: 1.08, z: 1.7012974}
+  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0.010000001}
+  m_LocalScale: {x: 3.200861, y: 1.0800005, z: 1.7012993}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!1 &456009895
 GameObject:
@@ -1042,8 +1044,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 456009896}
-  - component: {fileID: 456009898}
-  - component: {fileID: 456009897}
   m_Layer: 0
   m_Name: nonplayers
   m_TagString: Untagged
@@ -1068,49 +1068,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &456009897
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 456009895}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 372142912, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SceneId:
-    m_Value: 0
-  m_AssetId:
-    i0: 0
-    i1: 0
-    i2: 0
-    i3: 0
-    i4: 0
-    i5: 0
-    i6: 0
-    i7: 0
-    i8: 0
-    i9: 0
-    i10: 0
-    i11: 0
-    i12: 0
-    i13: 0
-    i14: 0
-    i15: 0
-  m_ServerOnly: 0
-  m_LocalPlayerAuthority: 0
---- !u!114 &456009898
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 456009895}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe50ddfc2f7ac5e46a85813538f10faf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &461030138
 GameObject:
   m_ObjectHideFlags: 0
@@ -1193,7 +1150,7 @@ GameObject:
   - component: {fileID: 533078523}
   - component: {fileID: 533078527}
   m_Layer: 0
-  m_Name: Plane
+  m_Name: Drawing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1266,7 +1223,7 @@ Transform:
   m_LocalScale: {x: 1.92, y: 1.08, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!114 &533078527
 MonoBehaviour:
@@ -1756,7 +1713,7 @@ MonoBehaviour:
     m_MaxTimerTimeout: 12000
     m_MinNetSimulatorTimeout: 1
     m_MaxNetSimulatorTimeout: 12000
-  m_Channels: 0500000000000000
+  m_Channels: 
   m_UseWebSockets: 0
   m_UseSimulator: 0
   m_SimulatedLatency: 315
@@ -2226,6 +2183,8 @@ MonoBehaviour:
   currentSize: 1
   width: 0
   pWidth: 0
+  PlayerCameraPrefab: {fileID: 0}
+  PlayerCameraObject: {fileID: 0}
 --- !u!50 &1775817251
 Rigidbody2D:
   serializedVersion: 4
@@ -2588,6 +2547,8 @@ MonoBehaviour:
   currentSize: 1
   width: 0
   pWidth: 0
+  PlayerCameraPrefab: {fileID: 0}
+  PlayerCameraObject: {fileID: 0}
 --- !u!114 &1954041974
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2786,6 +2747,8 @@ MonoBehaviour:
   currentSize: 1
   width: 0
   pWidth: 0
+  PlayerCameraPrefab: {fileID: 0}
+  PlayerCameraObject: {fileID: 0}
 --- !u!50 &1992587451
 Rigidbody2D:
   serializedVersion: 4
@@ -3153,6 +3116,7 @@ GameObject:
   - component: {fileID: 2123968739}
   - component: {fileID: 2123968738}
   - component: {fileID: 2123968737}
+  - component: {fileID: 2123968741}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -3228,3 +3192,35 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2123968741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 2123968736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 372142912, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SceneId:
+    m_Value: 0
+  m_AssetId:
+    i0: 0
+    i1: 0
+    i2: 0
+    i3: 0
+    i4: 0
+    i5: 0
+    i6: 0
+    i7: 0
+    i8: 0
+    i9: 0
+    i10: 0
+    i11: 0
+    i12: 0
+    i13: 0
+    i14: 0
+    i15: 0
+  m_ServerOnly: 1
+  m_LocalPlayerAuthority: 0

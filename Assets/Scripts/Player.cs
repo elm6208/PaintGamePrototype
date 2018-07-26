@@ -97,27 +97,38 @@ public class Player : NetworkBehaviour {
 
     void SetColor(Color color)
     {
+        currentColor = color;
         GetComponent<SpriteRenderer>().color = color;
     }
 
     // Update is called once per frame
     void Update() {
+        if(!isServer && !isLocalPlayer)
+        {
+            return;
+        }
+
+
+        if (isLocalPlayer && PlayerCameraObject != null)
+        {
+            var campos = Vector3.MoveTowards(PlayerCameraObject.transform.position, this.transform.position, speed * 0.9f);
+            campos.z = PlayerCameraObject.transform.position.z;
+            PlayerCameraObject.transform.position = campos;
+        }
         //if game is not over
         if(gameManager.gameOver == false)
         {
             //only allow controls for the player you're controlling
             if (isLocalPlayer)
             {
-
                 // Move character towards mouse if right click is held down
                 if (Input.GetMouseButton(0))
                 {
                     //get position to set ball to
                     var target = ScreenToWorld(Input.mousePosition);
+
                     transform.position = Vector3.MoveTowards(transform.position, target, speed);
-                    var campos = Vector3.MoveTowards(PlayerCameraObject.transform.position, target, speed * 0.9f);
-                    campos.z = PlayerCameraObject.transform.position.z;
-                    PlayerCameraObject.transform.position = campos;
+
                                       
                     Vector3 pos = transform.position;
                     pos.z = 0;
@@ -132,24 +143,21 @@ public class Player : NetworkBehaviour {
                 //on left click, fire a projectile
                 if (Input.GetMouseButton(1) || Input.GetKeyUp(KeyCode.Space))
                 {
-
                     if (Time.time > fireRate + lastShot)
                     {
                         if (isServer)
                         {
                             FireProjectile();
-
                         } else
                         {
                             CmdFireProjectile();
                         }
                     }
-
                 }
 
             } else
-            //temp behavior for other players, they just shoot repeatedly
-            if (isServer && playerControllerId == -1)
+            //temp behavior for non-human players, they just shoot repeatedly
+            if ( playerControllerId == -1)
             {
                 if (Time.time > fireRate + lastShot)
                 {
@@ -211,6 +219,19 @@ public class Player : NetworkBehaviour {
         FireProjectile();
     }
 
+
+    [ClientRpc]
+    private void RpcResetCamera()
+    {
+        if(PlayerCameraObject != null)
+        {
+            var pos = this.transform.position;
+            pos.z = PlayerCameraObject.transform.position.z;
+
+            PlayerCameraObject.transform.position = pos;
+        }
+    }
+
     //hit by another player's projectile
     public void TakeHit(Color c, Player attackingPlayer)
     {
@@ -224,8 +245,8 @@ public class Player : NetworkBehaviour {
                     //when player is killed
                     currentColor = c;
 
-                    //GetComponent<SpriteRenderer>().color = currentColor;
                     attackingPlayer.GetComponent<Player>().Capture(this);
+
                     health = 3;
                     maxHealth = 3;
                     transform.localScale = originalScale;
@@ -233,6 +254,7 @@ public class Player : NetworkBehaviour {
                     width = cCollider.bounds.size.x;
                     pWidth = 3;
                     transform.position = startPosition;
+                    RpcResetCamera();
                 }
             }
         }
