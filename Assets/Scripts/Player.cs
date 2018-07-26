@@ -44,21 +44,39 @@ public class Player : NetworkBehaviour {
     public int pWidth; // width of paint trail
 
     private TextMesh healthText;
-    
 
+    static int which = 0;
     // Use this for initialization
     void Start() {
         rbody2d = GetComponent<Rigidbody2D>();
-        currentColor = GetComponent<SpriteRenderer>().color;
+        //currentColor = GetComponent<SpriteRenderer>().color;
+
         originalScale = transform.lossyScale;
         cCollider = GetComponent<Collider2D>();
         gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
         startPosition = transform.position;
-        pWidth = 3;
         healthText = GetComponentInChildren<TextMesh>();
-        //  healthText.GetComponent<Renderer>().sortingOrder = GetComponent<SpriteRenderer>().sortingOrder + 1;
+
         TextureDrawing.instance.players.Add(this);
 
+        //syncvars can only change on server. color must be set by server.
+        if (isServer)
+        {
+            pWidth = 3;
+            Color32[] colors = new Color32[]{
+                new Color32(255,215,214,255),
+                new Color32(226,255,214,255),
+                new Color32(254,255,214,255),
+                new Color32(242,214,255,255)
+                };
+
+             
+
+            //int which = (int)Random.Range(0, colors.Length - 1);
+            currentColor = colors[which];
+
+            which = (which + 1) % colors.Length; 
+        }
     }
 
     //I am the server running this code. Only the server can change things for everyone
@@ -66,16 +84,12 @@ public class Player : NetworkBehaviour {
     {
         base.OnStartServer();
 
-        if (isServer)
-        {
-            currentColor = Random.ColorHSV();
-        }
+
     }
 
     void SetColor(Color color)
     {
         GetComponent<SpriteRenderer>().color = color;
-        currentColor = color;
     }
 
     // Update is called once per frame
@@ -166,7 +180,8 @@ public class Player : NetworkBehaviour {
 
             var proj = clone.GetComponent<Projectile>();
             proj.color = currentColor;
-            clone.GetComponent<Projectile>().parentPlayer = this.gameObject.GetComponent<Player>();
+
+            proj.parentPlayer = this.gameObject.GetComponent<Player>();
 
             clone.transform.position = transform.position + 0.5f * transform.right;
             clone.transform.rotation = transform.rotation;
@@ -238,7 +253,7 @@ public class Player : NetworkBehaviour {
         //scaling will likely need to be adjusted later
         pWidth = (3 + Mathf.FloorToInt((currentSize - 1) / 3));
 
-        if(isLocalPlayer)
+        if(isLocalPlayer && capturedText != null)
         {
             capturedText.text = "Captured: " + numCaptured;
         }
