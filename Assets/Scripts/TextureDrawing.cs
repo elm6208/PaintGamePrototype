@@ -105,26 +105,13 @@ public class TextureDrawing : NetworkBehaviour {
                     Vector2 uv;
                     uv.x = (hit.point.x - hit.collider.bounds.min.x) / hit.collider.bounds.size.x;
                     uv.y = (hit.collider.bounds.min.y - hit.point.y) / hit.collider.bounds.size.y;
-                    // Debug.Log("uv:"+uv);
 
                     Color pColor = p.currentColor;
-                    /*
-                    // Other method to paint it with the player's color, SetPixel is slower than SetPixels, this also doesn't adjust for scaling
-                    // However the other approach may be a performance issue as well, still calling SetPixels multiple times
-                    texture.SetPixel((int)(-uv.x * texture.width), (int)(uv.y * texture.height), pColor);
-                    texture.SetPixel((int)(-uv.x * texture.width), (int)(uv.y * texture.height) + 1, pColor);
-                    texture.SetPixel((int)(-uv.x * texture.width) + 1, (int)(uv.y * texture.height), pColor);
-                    texture.SetPixel((int)(-uv.x * texture.width), (int)(uv.y * texture.height) - 1, pColor);
-                    texture.SetPixel((int)(-uv.x * texture.width) - 1, (int)(uv.y * texture.height), pColor);
-                    texture.SetPixel((int)(-uv.x * texture.width) + 1, (int)(uv.y * texture.height) + 1, pColor);
-                    texture.SetPixel((int)(-uv.x * texture.width) - 1, (int)(uv.y * texture.height) - 1, pColor);
-                    texture.SetPixel((int)(-uv.x * texture.width) - 1, (int)(uv.y * texture.height) + 1, pColor);
-                    texture.SetPixel((int)(-uv.x * texture.width) + 1, (int)(uv.y * texture.height) - 1, pColor);
-                    */
 
-                    //position to draw set of pixels from
-                    float xPos = texture.width - (uv.x * texture.width);
-                    float yPos = texture.height - (-uv.y * texture.height);
+
+                    //position to draw set of pixels from, subtract half of trail width to center it
+                    float xPos = texture.width - (uv.x * texture.width) - (p.pWidth / 2);
+                    float yPos = texture.height - (-uv.y * texture.height) - (p.pWidth / 2);
 
 
                     //corners of square being drawn
@@ -161,6 +148,7 @@ public class TextureDrawing : NetworkBehaviour {
                     }
 
                     texture.SetPixels((int)xPos, (int)yPos, p.pWidth * scale, p.pWidth * scale, colors);
+
                 }
 
 
@@ -288,28 +276,27 @@ public class TextureDrawing : NetworkBehaviour {
             uv.y = (hit.collider.bounds.min.y - hit.point.y) / hit.collider.bounds.size.y;
 
 
-            //explosion location centered around pickup
-            float xPos = texture.width - (uv.x * texture.width) - (explosionDiameter / 2);
-            float yPos = texture.height - (-  uv.y * texture.height) - (explosionDiameter / 2);
-
+            int xPos = (int)(texture.width - (uv.x * texture.width) - (explosionDiameter / 2));
+            int yPos = (int)(texture.height - (-uv.y * texture.height) - (explosionDiameter / 2));
+            
             //check that it is not out of bounds and relocate accordingly
-            if (xPos - (explosionDiameter / 2) < planeMinX)
+            if (xPos - (explosionDiameter / 2) - 1 < planeMinX)
             {
-                xPos = planeMinX + (explosionDiameter / 2);
+                xPos = (int)(planeMinX);
             }
-            if (xPos + (explosionDiameter / 2) > planeMaxX)
+            if (xPos + (explosionDiameter) + 1 > planeMaxX)
             {
-                xPos = planeMaxX - explosionDiameter;
+                xPos = (int)(planeMaxX - (explosionDiameter));
             }
-            if (yPos - (explosionDiameter / 2) < planeMinY)
+            if (yPos - (explosionDiameter / 2) - 1 < planeMinY)
             {
-                yPos = planeMinY + (explosionDiameter / 2);
+                yPos = (int)(planeMinY); 
             }
-            if (yPos + (explosionDiameter / 2) > planeMaxY)
+            if (yPos + (explosionDiameter) + 1 > planeMaxY)
             {
-                yPos = planeMaxY - explosionDiameter;
+                yPos = (int)(planeMaxY - (explosionDiameter));
             }
-
+            
             //SetPixels, Apply will be called in Update
             texture.SetPixels((int)xPos, (int)yPos, explosionDiameter, explosionDiameter, colors);
             

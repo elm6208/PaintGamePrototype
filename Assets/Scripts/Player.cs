@@ -48,6 +48,23 @@ public class Player : NetworkBehaviour {
 
     public TextMesh healthText;
 
+    //for speed up powerup
+    [SyncVar]
+    private bool speedPowerUpActive = false;
+    [SyncVar]
+    private float speedPowerUpTimeLeft = 10;
+
+    [SyncVar]
+    private float startSpeed; // holds original speed to return to when speed powerup ends
+
+    //for trail powerup
+    [SyncVar]
+    private bool trailPowerUpActive = false;
+    [SyncVar]
+    private float trailPowerUpTimeLeft = 10;
+    [SyncVar]
+    private int startPWidth; // holds original trail size to return to when trail powerup ends
+
     static int which = 0;
     // Use this for initialization
     void Start() {
@@ -68,7 +85,11 @@ public class Player : NetworkBehaviour {
             //int which = (int)Random.Range(0, colors.Length - 1);
             currentColor = colors[which];
 
-            which = (which + 1) % colors.Count; 
+            which = (which + 1) % colors.Count;
+
+            healthText.GetComponent<Renderer>().sortingOrder = GetComponent<SpriteRenderer>().sortingOrder + 1;
+            startSpeed = speed;
+            startPWidth = pWidth;
         }
 
         if(isLocalPlayer)
@@ -95,15 +116,11 @@ public class Player : NetworkBehaviour {
     {
         currentColor = color;
         GetComponent<SpriteRenderer>().color = color;
+
     }
 
     // Update is called once per frame
     void Update() {
-        if(!isServer && !isLocalPlayer)
-        {
-            return;
-        }
-
 
         if (isLocalPlayer && PlayerCameraObject != null)
         {
@@ -116,7 +133,42 @@ public class Player : NetworkBehaviour {
         //if game is not over
         if(gameManager.gameOver == false)
         {
+            healthText.text = "" + health;
+
             //only allow controls for the player you're controlling
+            if (isServer)
+            {
+                // if speed power up is active, count down
+                if (speedPowerUpActive)
+                {
+                    if (speedPowerUpTimeLeft > 0)
+                    {
+                        speedPowerUpTimeLeft -= Time.deltaTime;
+                        speed = (float)(startSpeed * 1.5);
+                    }
+                    if (speedPowerUpTimeLeft <= 0)
+                    {
+                        speedPowerUpActive = false;
+                        speed = startSpeed;
+                    }
+                }
+
+                // if trail power up is active, count down
+                if (trailPowerUpActive)
+                {
+                    if (trailPowerUpTimeLeft > 0)
+                    {
+                        trailPowerUpTimeLeft -= Time.deltaTime;
+                        pWidth = (int)(startPWidth * 2);
+                    }
+                    if (trailPowerUpTimeLeft <= 0)
+                    {
+                        trailPowerUpActive = false;
+                        pWidth = startPWidth;
+                    }
+                }
+            }
+
             if (isLocalPlayer)
             {
                 // Move character towards mouse if right click is held down
@@ -152,8 +204,7 @@ public class Player : NetworkBehaviour {
                         }
                     }
                 }
-
-                healthText.text = "" + health;
+                
 
 
             }
@@ -185,9 +236,9 @@ public class Player : NetworkBehaviour {
                 return hit.point;
         }
         
-        //if ray hits nothing, return intersection between ray and Y=0 plane
-        float t = -ray.origin.y / ray.direction.y;
-        return ray.GetPoint(t);
+        //if ray hits nothing, player stays in place
+        return transform.position;
+        
         
     }
 
@@ -261,7 +312,17 @@ public class Player : NetworkBehaviour {
                     currentSize = 1;
                     width = cCollider.bounds.size.x;
                     pWidth = 3;
+                    startPWidth = pWidth;
+
                     ScramblePosition();
+
+
+                    //if speed powerup is active, end it
+                    speedPowerUpActive = false;
+                    speed = startSpeed;
+
+                    //if trail powerup is active, end it. trail size reset above
+                    trailPowerUpActive = false;
                 }
             }
         }
@@ -300,11 +361,21 @@ public class Player : NetworkBehaviour {
             //increase trail width with every 3 captured
             //scaling will likely need to be adjusted later
             pWidth = (3 + Mathf.FloorToInt((currentSize - 1) / 3));
-
+            startPWidth = pWidth;
 
         }
     }
 
+    public void SpeedPowerUp()
+    {
+        speedPowerUpActive = true;
+        speedPowerUpTimeLeft = 10;
+    }
 
+    public void TrailPowerUp()
+    {
+        trailPowerUpActive = true;
+        trailPowerUpTimeLeft = 10;
+    }
 
 }
