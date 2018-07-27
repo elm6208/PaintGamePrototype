@@ -17,31 +17,44 @@ public class GridPainterExample : MonoBehaviour {
     // Use this for initialization
     void Start() {
 
-        int xSize = GridObject.xSize ;
-        int ySize = GridObject.ySize ;
+        if (GridObject != null)
+        {
+            int xSize = GridObject.xSize;
+            int ySize = GridObject.ySize;
 
+            GenerateWithSize(xSize, ySize, GridObject.GetComponent<MeshRenderer>());
+
+        } else
+        {
+            GenerateWithSize(50, 20, this.GetComponent<MeshRenderer>());
+        }
+
+    }
+
+    void GenerateWithSize(int xSize, int ySize, Renderer r)
+    {
         GeneratedTexture = new Texture2D(xSize, ySize);
         GeneratedTexture.filterMode = FilterMode.Point;
         GeneratedTexture.wrapMode = TextureWrapMode.Clamp;
 
-        var randomColors = new Color[GeneratedTexture.width * GeneratedTexture.height];
+        var randomColors = new Color[xSize * ySize];
         for (int i = 0; i < xSize; i++)
         {
-            for(int j = 0; j < ySize; j++)
+            for (int j = 0; j < ySize; j++)
             {
-
-             //   if (i % 2 == 0 && j % 2 == 0)
-                {
-                    randomColors[i * (xSize) + j] = randomColor();
-                }
+                    int index = i * (ySize) + j;
+                    if(index >= randomColors.Length)
+                    {
+                        Debug.Log("xSize:"+xSize+" ySize:"+ySize+" total:"+xSize*ySize+" index:"+index+" i:"+i+" j:"+j);
+                    }
+                    randomColors[index] = randomColor();
             }
         }
         GeneratedTexture.SetPixels(randomColors);
         GeneratedTexture.Apply();
 
-        GridObject.GetComponent<MeshRenderer>().material.mainTexture = GeneratedTexture;
-
-	}
+        r.material.mainTexture = GeneratedTexture;
+    }
 
     Color randomColor()
     {

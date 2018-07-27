@@ -7,11 +7,11 @@ using UnityEngine.Networking;
 public class TextureDrawing : NetworkBehaviour {
 
     private Texture2D texture;
-    private Renderer rend;
+    private MeshRenderer rend;
     
     public Text colorText;
 
-    public Color[] allColors;
+    public List<Color> allColors;
     protected List<int> ColorPercentages = new List<int>();
 
     public int leadingColor;
@@ -24,23 +24,25 @@ public class TextureDrawing : NetworkBehaviour {
 
     public static TextureDrawing instance;
 
-    protected int scale = 2;
+    protected int scale = 3;
 
     protected Dictionary<Player, Vector3> previousPositions = new Dictionary<Player, Vector3>();
     protected float threshhold = 0.1f;
 
-    public Color emptyColor = Color.white;
+    public Color emptyColor = Color.red;
 
     private void Awake()
     {
         instance = this;
     }
+
+    public Camera UpdateCam;
+
     // Use this for initialization
     void Start () {
-        //set up texture
-        texture = new Texture2D(500, 200);
-        rend = GetComponent<Renderer>();
-        rend.material.mainTexture = texture;
+
+        texture = new Texture2D(192*2, 108*2);
+        rend = GetComponent<MeshRenderer>();
         texture.filterMode = FilterMode.Point;
         
         //set plane values
@@ -53,24 +55,28 @@ public class TextureDrawing : NetworkBehaviour {
         planeMaxY = planeHeight;
 
         ResetBoard();
+        rend.material.mainTexture = texture;
+
     }
-	
-	// Update is called once per frame
-	void Update () {
-        
-        while(ColorPercentages.Count < allColors.Length)
+
+
+    // Update is called once per frame
+    void Update()
+    {
+
+        while (ColorPercentages.Count < allColors.Count)
         {
             ColorPercentages.Add(0);
         }
 
         if (texture != null)
         {
-
+            bool HaveChanges = false;
             // leave a paint trail behind each player
-            var players =(NetworkManager.singleton as GameNetworkManager).players;
-            foreach(Player p in players)
+            var players = (NetworkManager.singleton as GameNetworkManager).players;
+            foreach (Player p in players)
             {
-                if(p == null)
+                if (p == null)
                 {
                     continue;
                 }
@@ -80,90 +86,93 @@ public class TextureDrawing : NetworkBehaviour {
                 if (previousPositions.ContainsKey(p))
                 {
                     var lastPosition = previousPositions[p];
-                    if(Vector3.Distance(currentPosition, lastPosition) < threshhold)
+                    if (Vector3.Distance(currentPosition, lastPosition) < threshhold)
                     {
                         continue;
                     }
                 }
                 previousPositions[p] = currentPosition;
+                HaveChanges = true;
+                //raycast down to find the spot below the player
+                Vector3 direction = new Vector3(0f, 0f, 1f);
+                Ray ray = new Ray(new Vector3(p.transform.position.x, p.transform.position.y, p.transform.position.z), direction);
+                RaycastHit hit;
 
-                    //raycast down to find the spot below the player
-                    Vector3 direction = new Vector3(0f, 0f, 1f);
-                    Ray ray = new Ray(new Vector3(p.transform.position.x, p.transform.position.y, p.transform.position.z), direction);
-                    RaycastHit hit;
+                //if there is a hit, draw player's paint trail
+                if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+                {
 
-                    //if there is a hit, draw player's paint trail
-                    if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+                    Vector2 uv;
+                    uv.x = (hit.point.x - hit.collider.bounds.min.x) / hit.collider.bounds.size.x;
+                    uv.y = (hit.collider.bounds.min.y - hit.point.y) / hit.collider.bounds.size.y;
+                    // Debug.Log("uv:"+uv);
+
+                    Color pColor = p.currentColor;
+                    /*
+                    // Other method to paint it with the player's color, SetPixel is slower than SetPixels, this also doesn't adjust for scaling
+                    // However the other approach may be a performance issue as well, still calling SetPixels multiple times
+                    texture.SetPixel((int)(-uv.x * texture.width), (int)(uv.y * texture.height), pColor);
+                    texture.SetPixel((int)(-uv.x * texture.width), (int)(uv.y * texture.height) + 1, pColor);
+                    texture.SetPixel((int)(-uv.x * texture.width) + 1, (int)(uv.y * texture.height), pColor);
+                    texture.SetPixel((int)(-uv.x * texture.width), (int)(uv.y * texture.height) - 1, pColor);
+                    texture.SetPixel((int)(-uv.x * texture.width) - 1, (int)(uv.y * texture.height), pColor);
+                    texture.SetPixel((int)(-uv.x * texture.width) + 1, (int)(uv.y * texture.height) + 1, pColor);
+                    texture.SetPixel((int)(-uv.x * texture.width) - 1, (int)(uv.y * texture.height) - 1, pColor);
+                    texture.SetPixel((int)(-uv.x * texture.width) - 1, (int)(uv.y * texture.height) + 1, pColor);
+                    texture.SetPixel((int)(-uv.x * texture.width) + 1, (int)(uv.y * texture.height) - 1, pColor);
+                    */
+
+                    //position to draw set of pixels from
+                    float xPos = texture.width - (uv.x * texture.width);
+                    float yPos = texture.height - (-uv.y * texture.height);
+
+
+                    //corners of square being drawn
+                    float minX = xPos - p.pWidth;
+                    float maxX = xPos;
+                    float minY = yPos;
+                    float maxY = yPos + p.pWidth;
+
+                    //find difference between corner and plane edge, move square corner accordingly to avoid going off the edge
+                    //this currently causes a snapping effect with the trail when approaching some of the walls
+                    if (minX < planeMinX)
                     {
-                        
-                        Vector2 uv;
-                        uv.x = (hit.point.x - hit.collider.bounds.min.x) / hit.collider.bounds.size.x;
-                        uv.y = (hit.collider.bounds.min.y - hit.point.y) / hit.collider.bounds.size.y;
-                   // Debug.Log("uv:"+uv);
-
-                        Color pColor = p.currentColor;
-                        /*
-                        // Other method to paint it with the player's color, SetPixel is slower than SetPixels, this also doesn't adjust for scaling
-                        // However the other approach may be a performance issue as well, still calling SetPixels multiple times
-                        texture.SetPixel((int)(-uv.x * texture.width), (int)(uv.y * texture.height), pColor);
-                        texture.SetPixel((int)(-uv.x * texture.width), (int)(uv.y * texture.height) + 1, pColor);
-                        texture.SetPixel((int)(-uv.x * texture.width) + 1, (int)(uv.y * texture.height), pColor);
-                        texture.SetPixel((int)(-uv.x * texture.width), (int)(uv.y * texture.height) - 1, pColor);
-                        texture.SetPixel((int)(-uv.x * texture.width) - 1, (int)(uv.y * texture.height), pColor);
-                        texture.SetPixel((int)(-uv.x * texture.width) + 1, (int)(uv.y * texture.height) + 1, pColor);
-                        texture.SetPixel((int)(-uv.x * texture.width) - 1, (int)(uv.y * texture.height) - 1, pColor);
-                        texture.SetPixel((int)(-uv.x * texture.width) - 1, (int)(uv.y * texture.height) + 1, pColor);
-                        texture.SetPixel((int)(-uv.x * texture.width) + 1, (int)(uv.y * texture.height) - 1, pColor);
-                        */
-                        
-                        //position to draw set of pixels from
-                        float xPos = texture.width - (uv.x * texture.width);
-                        float yPos = texture.height - (-uv.y * texture.height);
-                        
-
-                        //corners of square being drawn
-                        float minX = xPos - p.pWidth;
-                        float maxX = xPos;
-                        float minY = yPos;
-                        float maxY = yPos + p.pWidth;
-
-                        //find difference between corner and plane edge, move square corner accordingly to avoid going off the edge
-                        //this currently causes a snapping effect with the trail when approaching some of the walls
-                        if(minX < planeMinX)
-                        {
-                            xPos = planeMinX;
-                        }
-                        if ((maxX + p.pWidth) > planeMaxX)
-                        {
-                            xPos = planeMaxX - p.pWidth;
-                        }
-                        if (minY - p.pWidth < planeMinY)
-                        {
-                            yPos = planeMinY;
-                        }
-                        if (maxY > planeMaxY)
-                        {
-                            yPos = planeMaxY - p.pWidth;
-                        }
-
-                        //make color array to draw
-                        Color[] colors = new Color[p.pWidth * p.pWidth * scale * scale];
-
-                        for (int i = 0; i < colors.Length; i++)
-                        {
-                            colors[i] = pColor;
-                        }
-
-                        texture.SetPixels((int)xPos, (int)yPos, p.pWidth * scale, p.pWidth * scale, colors);
+                        xPos = planeMinX;
                     }
-                
-                
+                    if ((maxX + p.pWidth) > planeMaxX)
+                    {
+                        xPos = planeMaxX - p.pWidth;
+                    }
+                    if (minY - p.pWidth < planeMinY)
+                    {
+                        yPos = planeMinY;
+                    }
+                    if (maxY > planeMaxY)
+                    {
+                        yPos = planeMaxY - p.pWidth;
+                    }
 
-                    
+                    //make color array to draw
+                    Color[] colors = new Color[p.pWidth * p.pWidth * scale * scale];
+
+                    for (int i = 0; i < colors.Length; i++)
+                    {
+                        colors[i] = pColor;
+                    }
+
+                    texture.SetPixels((int)xPos, (int)yPos, p.pWidth * scale, p.pWidth * scale, colors);
+                }
+
+
+
+
             }
-            //applies SetPixels
-            texture.Apply();
 
+            if (HaveChanges)
+            {
+                //applies SetPixels
+                texture.Apply();
+            }
 
         }
 
@@ -172,14 +181,14 @@ public class TextureDrawing : NetworkBehaviour {
             CountColors();
         }
         UpdateUI();
-	}
+    }
 
     // calculate how much of each color is on the canvas
     private void CountColors()
     {
         Color[] colors = texture.GetPixels();
         
-        int[] colorNums = new int[allColors.Length];
+        int[] colorNums = new int[allColors.Count];
 
         //count pixels of each individual color
         for (int i = 0; i < colors.Length; i++)
@@ -192,7 +201,7 @@ public class TextureDrawing : NetworkBehaviour {
             int g = (int)(colorC.g * 100);
             int b = (int)(colorC.b * 100);
 
-            for(int j = 0; j < allColors.Length; j++)
+            for(int j = 0; j < allColors.Count; j++)
             {
                 if ((r == (int)(allColors[j].r * 100)) && (g == (int)(allColors[j].g * 100)) && (b == (int)(allColors[j].b * 100)))
                 {
@@ -207,7 +216,7 @@ public class TextureDrawing : NetworkBehaviour {
         double highestPercent = 0; //highest % of color
 
         //Find leading color and display it
-        for (int k = 0; k < allColors.Length; k++)
+        for (int k = 0; k < allColors.Count; k++)
         {
             
             double percentage = (((double)colorNums[k])/((double)colors.Length));

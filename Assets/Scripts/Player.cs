@@ -62,13 +62,13 @@ public class Player : NetworkBehaviour {
         if (isServer)
         {
             pWidth = 3;
-            Color[] colors = TextureDrawing.instance.allColors;
+            var colors = TextureDrawing.instance.allColors;
              
 
             //int which = (int)Random.Range(0, colors.Length - 1);
             currentColor = colors[which];
 
-            which = (which + 1) % colors.Length; 
+            which = (which + 1) % colors.Count; 
         }
 
         if(isLocalPlayer)

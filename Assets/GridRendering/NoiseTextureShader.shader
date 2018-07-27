@@ -1,140 +1,155 @@
-﻿Shader "Custom/Blended Noise Texture Shader" {
+﻿// Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
+
+// Unlit shader. Simplest possible textured shader.
+// - no lighting
+// - no lightmap support
+// - no per-material color
+
+Shader "Custom/Blended Noisy" {
 	Properties{
-		
 		_Color("Empty Color", Color) = (0,0,0,0)
 		_MainTex("Albedo (RGB)", 2D) = "white" {}
 
 	[Toggle]
-		_ApplyNoise("Use Noise?", Float) = 1
+	_ApplyNoise("Use Noise?", Float) = 1
 		_NoiseFactor1("Noise Factor1", Range(0.1,100)) = 1
 		_NoiseFactor2("Noise Factor2", Range(0.1,100)) = 1
-
 	}
 
 		SubShader{
-		Tags{ "RenderType" = "Transparent" "RenderQueue"="3000" }
-		LOD 200
+		Tags{ "RenderType" = "Opaque" }
 
+		Pass{
 		CGPROGRAM
+
+
+		#pragma vertex vert
+		#pragma fragment frag
+		#pragma target 4.0
+		#pragma multi_compile_fog
+
+		#include "UnityCG.cginc"
 #include "noise.cginc"
-#pragma surface surf NoLighting vertex:vert alpha
-#pragma target 4.0
-		struct Input {
-		float2 uv_MainTex;
- 
-		float3 vertexColor; // Vertex color stored here by vert() method
-		float3 worldPos;
-	};
 
-	struct v2f {
-		float4 pos : SV_POSITION;
-		fixed4 color : COLOR;
-	};
+				struct appdata_t {
+				float4 vertex : POSITION;
+				float2 texcoord : TEXCOORD0;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+			};
 
-	void vert(inout appdata_full v, out Input o)
-	{
-		UNITY_INITIALIZE_OUTPUT(Input,o);
-		o.vertexColor = v.color; // Save the Vertex Color in the Input for the surf() method
-	}
+			struct v2f {
+				float4 vertex : SV_POSITION;
+				float2 texcoord : TEXCOORD0;
+				float3 worldPos : TEXCOORD1;
+				UNITY_FOG_COORDS(1)
+					UNITY_VERTEX_OUTPUT_STEREO
+			};
 
-	sampler2D _MainTex;
-	uniform float2 _MainTex_TexelSize;
-	uniform float _ApplyNoise;
-	uniform float _NoiseFactor1;
-	uniform float _NoiseFactor2;
-	uniform float _Length;
+			sampler2D _MainTex;
+			float4 _MainTex_ST;
+			float4 _MainTex_TexelSize;
 
-	fixed4 _Color;
-	fixed4 LightingNoLighting(SurfaceOutput s, fixed3 lightDir, fixed atten)
-	{
-		fixed4 c;
-		c.rgb = s.Albedo;
-		c.a = s.Alpha;
-		return c;
-	}
+			uniform float _ApplyNoise;
+			uniform float _NoiseFactor1;
+			uniform float _NoiseFactor2;
+			uniform float _Length;
 
+			uniform fixed4 _Color;
 
-	float noisySmoother(float3 noiseFactor, float smoother)
-	{
-		if (_ApplyNoise)
-		{
-			if (length(noiseFactor) * smoother > 0.3)
+			float noisySmoother(float3 noiseFactor, float smoother)
 			{
-				smoother = lerp(smoother, 1, length(noiseFactor.xy));
-			}
-			return saturate(smoother);
-		}
-		else {
-			return smoother;
-		}
-	}
-
-	void surf(Input IN, inout SurfaceOutput o)
-	{
-		float3 worldNoise = simplexNoise((IN.worldPos *_NoiseFactor1));
-		float3 worldNoise2 = simplexNoise((IN.worldPos * _NoiseFactor2));
-
-		float2 units = _MainTex_TexelSize;
-
-		//uv2 = 0-1
-		float2 coord = IN.uv_MainTex;
-
-		float2 discreteCoordinate = coord;
-		discreteCoordinate /= units;
-		discreteCoordinate = floor(discreteCoordinate);
-		discreteCoordinate *= units;
-		discreteCoordinate += units / 2;
-		float3 co = tex2D(_MainTex, discreteCoordinate);
-
-			float2 neighborUV = discreteCoordinate;
-			float2 gridUnits = units / 3;
-			float test = 0;
-			float xplus = discreteCoordinate.x + (gridUnits).x / 2;
-			float xminus = discreteCoordinate.x - gridUnits.x / 2;
-
-			float yplus = discreteCoordinate.y + (gridUnits).y / 2;
-			float yminus = discreteCoordinate.y - gridUnits.y / 2;
-
-
-			if (coord.x > xplus)
-			{
-				neighborUV.x += units.x;
-			}
-			else
-				if (coord.x < xminus)
+				if (_ApplyNoise)
 				{
-					neighborUV.x -= units.x;
+					if (length(noiseFactor) * smoother > 0.3)
+					{
+						smoother = lerp(smoother, 1, length(noiseFactor.xy));
+					}
+					return saturate(smoother);
 				}
-
-			if (coord.y > yplus)
-			{
-				neighborUV.y += units.y;
+				else {
+					return smoother;
+				}
 			}
-			else
-				if (coord.y < yminus)
+
+			v2f vert(appdata_t v)
+			{
+				v2f o;
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+				o.vertex = UnityObjectToClipPos(v.vertex);
+				o.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
+				o.worldPos = mul(unity_ObjectToWorld, v.vertex)
+
+				UNITY_TRANSFER_FOG(o,o.vertex);
+				return o;
+			}
+
+			fixed3 frag(v2f IN) : SV_Target
+			{
+				float3 worldNoise = simplexNoise((IN.worldPos *_NoiseFactor1));
+				float3 worldNoise2 = simplexNoise((IN.worldPos * _NoiseFactor2));
+
+				float2 units = _MainTex_TexelSize;
+
+				//uv2 = 0-1
+				float2 coord = IN.texcoord;
+
+				float2 discreteCoordinate = coord;
+				discreteCoordinate /= units;
+				discreteCoordinate = floor(discreteCoordinate);
+				discreteCoordinate *= units;
+				discreteCoordinate += units / 2;
+				float3 co = tex2D(_MainTex, discreteCoordinate);
+
+				float2 neighborUV = discreteCoordinate;
+				float2 gridUnits = units / 3;
+				float test = 0;
+				float xplus = discreteCoordinate.x + (gridUnits).x / 2;
+				float xminus = discreteCoordinate.x - gridUnits.x / 2;
+
+				float yplus = discreteCoordinate.y + (gridUnits).y / 2;
+				float yminus = discreteCoordinate.y - gridUnits.y / 2;
+
+
+				if (coord.x > xplus)
 				{
-					neighborUV.y -= units.y;
+					neighborUV.x += units.x;
 				}
+				else
+					if (coord.x < xminus)
+					{
+						neighborUV.x -= units.x;
+					}
 
-			float2 blendDifference = neighborUV - discreteCoordinate;
-			float2 coord2 = discreteCoordinate;
+				if (coord.y > yplus)
+				{
+					neighborUV.y += units.y;
+				}
+				else
+					if (coord.y < yminus)
+					{
+						neighborUV.y -= units.y;
+					}
 
-			float3 neighbor = tex2D(_MainTex, neighborUV);
-			float neighborSame = all(co == neighbor);
-			float2 needsSmoothing = 0;
-			float3 c2 = neighbor;
+				float2 blendDifference = neighborUV - discreteCoordinate;
+				float2 coord2 = discreteCoordinate;
 
-			float2 distanceToMaster = coord - discreteCoordinate;
+				float3 neighbor = tex2D(_MainTex, neighborUV);
+				float neighborSame = all(co == neighbor);
+				float2 needsSmoothing = 0;
+				float3 c2 = neighbor;
 
-			float noiseFactor = max(length(worldNoise), length(worldNoise2));
+				float2 distanceToMaster = coord - discreteCoordinate;
 
-			float blend;
-			float xSame = 0;
-			float ySame = 0;
-			float4 neighbor2;
+				float noiseFactor = max(length(worldNoise), length(worldNoise2));
 
-			//this is for making rounded rectangles
-			float sqpower = 2;
+				float blend;
+				float xSame = 0;
+				float ySame = 0;
+				float4 neighbor2;
+
+				//this is for making rounded rectangles
+				float sqpower = 2;
 				float distanceSq = length(pow(distanceToMaster, sqpower));
 				float sqLonger = 1.8*length(pow(gridUnits, sqpower));
 				float sqShorter = 0;
@@ -142,7 +157,7 @@
 				blend = distanceSq < sqLonger ? 0 : 1;
 
 				//smoother 
-				float smoother = (distanceSq - sqShorter) / (sqLonger-sqShorter);
+				float smoother = (distanceSq - sqShorter) / (sqLonger - sqShorter);
 				float smootherx;
 				float smoothery;
 
@@ -158,9 +173,9 @@
 				ds = length(pow(d2m, sqpower));;
 				smoothery = 1.0 - ((ds - sqLonger) / (sqShorter - sqLonger));
 
-		
-			float xSame2 = 0;
-			float ySame2 = 0;
+
+				float xSame2 = 0;
+				float ySame2 = 0;
 
 				if (neighborUV.x != discreteCoordinate.x)
 				{
@@ -185,7 +200,7 @@
 
 					ySame = all(neighbor2 == co);
 
-					if (!ySame )
+					if (!ySame)
 					{
 						needsSmoothing.y = 1;
 					}
@@ -213,39 +228,20 @@
 						//wrong value, but close in some situations
 						smoother = 1.3*(smootherx * smoothery) - 0.05;
 					}
-					/*
-					//this is an inside corner surrounded by all the same color
-					else {
-						needsSmoothing.xy = 1;
-
-
-					}*/
 				}
 
-				/*
-				if (xSame2 && ySame2)
-				{
-					//inside rounded corners
-					c2 = insideRounded;
-					if (flag == 1)
-					{
-						needsSmoothing.xy = 0;
-					}
-				}
-				*/				
-
-
+				fixed3 outputColor;
 				if (needsSmoothing.x && !needsSmoothing.y)
 				{
 					smootherx = noisySmoother(noiseFactor, smootherx);
 
-					o.Albedo = lerp(lerp(co, c2, blend), _Color, smootherx);
+					outputColor = lerp(lerp(co, c2, blend), _Color, smootherx);
 				}
 				else if (needsSmoothing.y && !needsSmoothing.x)
 				{
 					smoothery = noisySmoother(noiseFactor, smoothery);
 
-					o.Albedo = lerp(lerp(co, c2, blend), _Color, smoothery);
+					outputColor = lerp(lerp(co, c2, blend), _Color, smoothery);
 				}
 				else {
 					smoother = noisySmoother(noiseFactor, smoother);
@@ -254,14 +250,17 @@
 					{
 						smoother = 0;
 					}
-					o.Albedo = lerp(lerp(co, c2, blend), _Color, smoother);
+					outputColor = lerp(lerp(co, c2, blend), _Color, smoother);
 				}
 
-				o.Alpha = 1 ;
 
+			UNITY_APPLY_FOG(i.fogCoord, outputColor);
+			return outputColor;
+			}
+				ENDCG
+			}
 	}
 
-	ENDCG
-	}
-		FallBack "Diffuse"
 }
+
+
