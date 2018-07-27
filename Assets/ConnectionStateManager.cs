@@ -8,6 +8,8 @@ public class ConnectionStateManager : NetworkBehaviour {
     public static ConnectionStateManager singleton;
     public Text ConnectedPlayers;
 
+    [SyncVar]
+    public int NumConnected = 0;
     private void Awake()
     {
         singleton = this;
@@ -16,9 +18,7 @@ public class ConnectionStateManager : NetworkBehaviour {
     [ClientRpc]
     public void RpcUpdateConnectedPlayersState()
     {
-        int count = GameNetworkManager.game.numPlayers;
-
-        ConnectedPlayers.text = "Connected Players: " + count;
+        ConnectedPlayers.text = "Connected Players: " + NumConnected;
     }
 
   

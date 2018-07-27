@@ -45,17 +45,20 @@ public class GameNetworkManager : NetworkManager {
         ConnectionStateManager.singleton.RpcUpdateConnectedPlayersState();
     }
 
-    public override void OnClientConnect(NetworkConnection conn)
+    public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId)
     {
-        base.OnClientConnect(conn);
-
+        base.OnServerAddPlayer(conn, playerControllerId);
         RefreshPlayersList();
+
     }
 
-    public override void OnClientDisconnect(NetworkConnection conn)
+    public override void OnServerRemovePlayer(NetworkConnection conn, PlayerController player)
     {
-        base.OnClientDisconnect(conn);
+        base.OnServerRemovePlayer(conn, player);
 
         RefreshPlayersList();
+
     }
+
+
 }
