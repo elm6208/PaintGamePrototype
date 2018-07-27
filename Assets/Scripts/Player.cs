@@ -34,7 +34,16 @@ public class Player : MonoBehaviour {
     public int pWidth; // width of paint trail
 
     private TextMesh healthText;
-    
+
+    //for speed up powerup
+    private bool speedPowerUpActive = false;
+    private float speedPowerUpTimeLeft = 10;
+    private float startSpeed; // holds original speed to return to when speed powerup ends
+
+    //for trail powerup
+    private bool trailPowerUpActive = false;
+    private float trailPowerUpTimeLeft = 10;
+    private int startPWidth; // holds original trail size to return to when trail powerup ends
 
     // Use this for initialization
     void Start() {
@@ -47,7 +56,8 @@ public class Player : MonoBehaviour {
         pWidth = 3;
         healthText = GetComponentInChildren<TextMesh>();
         healthText.GetComponent<Renderer>().sortingOrder = GetComponent<SpriteRenderer>().sortingOrder + 1;
-        
+        startSpeed = speed;
+        startPWidth = pWidth;
     }
 
     // Update is called once per frame
@@ -86,6 +96,36 @@ public class Player : MonoBehaviour {
 
                 }
 
+                // if speed power up is active, count down
+                if(speedPowerUpActive)
+                {
+                    if (speedPowerUpTimeLeft > 0)
+                    {
+                        speedPowerUpTimeLeft -= Time.deltaTime;
+                        speed = (float)(startSpeed * 1.5);
+                    }
+                    if (speedPowerUpTimeLeft <= 0)
+                    {
+                        speedPowerUpActive = false;
+                        speed = startSpeed;
+                    }
+                }
+
+                // if trail power up is active, count down
+                if (trailPowerUpActive)
+                {
+                    if (trailPowerUpTimeLeft > 0)
+                    {
+                        trailPowerUpTimeLeft -= Time.deltaTime;
+                        pWidth = (int)(startPWidth * 2);
+                    }
+                    if (trailPowerUpTimeLeft <= 0)
+                    {
+                        trailPowerUpActive = false;
+                        pWidth = startPWidth;
+                    }
+                }
+
             }
             //temp behavior for other players, they just shoot repeatedly
             if (!isMainPlayer)
@@ -115,9 +155,9 @@ public class Player : MonoBehaviour {
                 return hit.point;
         }
         
-        //if ray hits nothing, return intersection between ray and Y=0 plane
-        float t = -ray.origin.y / ray.direction.y;
-        return ray.GetPoint(t);
+        //if ray hits nothing, player stays in place
+        return transform.position;
+        
         
     }
 
@@ -149,7 +189,16 @@ public class Player : MonoBehaviour {
                 currentSize = 1;
                 width = cCollider.bounds.size.x;
                 pWidth = 3;
+                startPWidth = pWidth;
                 transform.position = startPosition;
+
+                //if speed powerup is active, end it
+                speedPowerUpActive = false;
+                speed = startSpeed;
+
+                //if trail powerup is active, end it. trail size reset above
+                trailPowerUpActive = false;
+
             }
         }
         
@@ -182,6 +231,7 @@ public class Player : MonoBehaviour {
         //increase trail width with every 3 captured
         //scaling will likely need to be adjusted later
         pWidth = (3 + Mathf.FloorToInt((currentSize - 1) / 3));
+        startPWidth = pWidth;
 
         if(isMainPlayer)
         {
@@ -190,6 +240,16 @@ public class Player : MonoBehaviour {
         
     }
 
+    public void SpeedPowerUp()
+    {
+        speedPowerUpActive = true;
+        speedPowerUpTimeLeft = 10;
+    }
 
+    public void TrailPowerUp()
+    {
+        trailPowerUpActive = true;
+        trailPowerUpTimeLeft = 10;
+    }
 
 }
