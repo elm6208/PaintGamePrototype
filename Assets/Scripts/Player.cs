@@ -5,7 +5,11 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 
 [RequireComponent(typeof(NetworkIdentity))]
-public class Player : NetworkBehaviour {
+
+public class Player : NetworkBehaviour
+{
+
+    public SpriteRenderer PaintRenderer;
 
     private Rigidbody2D rbody2d;
     private Vector3 mousePos;
@@ -38,8 +42,10 @@ public class Player : NetworkBehaviour {
 
     [SyncVar]
     public int currentSize = 1;
+
     [SyncVar]
     public float width; //width of player
+ 
     [SyncVar]
     public int pWidth; // width of paint trail
 
@@ -51,6 +57,7 @@ public class Player : NetworkBehaviour {
     //for speed up powerup
     [SyncVar]
     private bool speedPowerUpActive = false;
+
     [SyncVar]
     private float speedPowerUpTimeLeft = 10;
 
@@ -60,8 +67,10 @@ public class Player : NetworkBehaviour {
     //for trail powerup
     [SyncVar]
     private bool trailPowerUpActive = false;
+
     [SyncVar]
     private float trailPowerUpTimeLeft = 10;
+
     [SyncVar] 
     private int startPWidth; // holds original trail size to return to when trail powerup ends
 
@@ -74,55 +83,65 @@ public class Player : NetworkBehaviour {
         originalScale = transform.lossyScale;
         cCollider = GetComponent<Collider2D>();
         gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
-
-        //syncvars can only change on server. color must be set by server.
-        if (isServer)
-        {
-            pWidth = 3;
-            var colors = TextureDrawing.instance.allColors;
-             
-
-            //int which = (int)Random.Range(0, colors.Length - 1);
-            currentColor = colors[which];
-
-            which = (which + 1) % colors.Count;
-
-            healthText.GetComponent<Renderer>().sortingOrder = GetComponent<SpriteRenderer>().sortingOrder + 1;
-            startSpeed = speed;
-            startPWidth = pWidth;
-        }
-
-        if(isLocalPlayer)
-        {
-            localPlayer = this;
-            Debug.Log("IS LOCAL PLAYER");
-            PlayerCameraObject = Instantiate(PlayerCameraPrefab);
-
-            var campos = this.transform.position;
-            campos.z = PlayerCameraObject.transform.position.z;
-            PlayerCameraObject.transform.position = campos;
-        }
+        
     }
 
-    //I am the server running this code. Only the server can change things for everyone
-    public override void OnStartServer()
+override public void OnStartLocalPlayer()
+    {
+        base.OnStartLocalPlayer();
+        localPlayer = this;
+        Debug.Log("IS LOCAL PLAYER");
+        PlayerCameraObject = Instantiate(PlayerCameraPrefab);
+
+        var campos = this.transform.position;
+        campos.z = PlayerCameraObject.transform.position.z;
+        PlayerCameraObject.transform.position = campos;
+    }
+
+    override public void OnStartServer()
     {
         base.OnStartServer();
+        pWidth = 3;
+        var colors = TextureDrawing.instance.allColors;
 
+        //int which = (int)Random.Range(0, colors.Length - 1);
+        currentColor = colors[which];
 
+        which = (which + 1) % colors.Count;
+
+        healthText.GetComponent<Renderer>().sortingOrder = GetComponent<SpriteRenderer>().sortingOrder + 1;
+        startSpeed = speed;
+        startPWidth = pWidth;
     }
+
+
+    NetworkIdentity _identity;
+    NetworkIdentity identity
+    {
+        get
+        {
+            if(_identity != null)
+            {
+                return _identity;
+            }
+            _identity = GetComponent<NetworkIdentity>();
+            return _identity;
+        }
+    }
+
 
     void SetColor(Color color)
     {
         currentColor = color;
         GetComponent<SpriteRenderer>().color = color;
+        PaintRenderer.color = color;
 
     }
 
     // Update is called once per frame
     void Update() {
 
-        if (isLocalPlayer && PlayerCameraObject != null)
+        if (identity.isLocalPlayer && PlayerCameraObject != null)
         {
             //var campos = Vector3.MoveTowards(PlayerCameraObject.transform.position, this.transform.position, speed * 0.9f);
 
@@ -136,7 +155,7 @@ public class Player : NetworkBehaviour {
             healthText.text = "" + health;
 
             //only allow controls for the player you're controlling
-            if (isServer)
+            if (identity.isServer)
             {
                 
 
@@ -171,7 +190,7 @@ public class Player : NetworkBehaviour {
                 }
             }
 
-            if (isLocalPlayer && localPlayerAuthority)
+            if (identity.isLocalPlayer && identity.localPlayerAuthority)
             {
                 // Move character towards mouse if right click is held down
                 if (Input.GetMouseButton(0))
@@ -197,7 +216,7 @@ public class Player : NetworkBehaviour {
                 {
                     if (Time.time > fireRate + lastShot)
                     {
-                        if (isServer)
+                        if (identity.isServer)
                         {
                             FireProjectile();
                         } else
@@ -212,7 +231,7 @@ public class Player : NetworkBehaviour {
             }
             else
             //temp behavior for non-human players, they just shoot repeatedly
-            if ( playerControllerId == -1)
+            if (identity.playerControllerId == -1)
             {
                 if (Time.time > fireRate + lastShot)
                 {
@@ -248,7 +267,7 @@ public class Player : NetworkBehaviour {
     //This can only be run by the server!
     private void FireProjectile()
     {
-        if (isServer)
+        if (identity.isServer)
         {
             GameObject clone = Instantiate(projectile) as GameObject;
             NetworkServer.Spawn(clone);
@@ -273,7 +292,6 @@ public class Player : NetworkBehaviour {
         FireProjectile();
     }
 
-
     [ClientRpc]
     private void RpcResetCamera()
     {
@@ -296,7 +314,7 @@ public class Player : NetworkBehaviour {
     //hit by another player's projectile
     public void TakeHit(Color c, Player attackingPlayer)
     {
-        if (isServer)
+        if (identity.isServer)
         {
             if (currentColor != c)
             {
@@ -339,8 +357,8 @@ public class Player : NetworkBehaviour {
     //Capture another player
     public void Capture(Player capturedPlayer)
     {
-        
-        if (isServer)
+
+        if (identity.isServer)
         {
             //increase size by 1/2 of captured player's size, ints are rounded
             int toIncrease = ((capturedPlayer.currentSize + 1) / 2);

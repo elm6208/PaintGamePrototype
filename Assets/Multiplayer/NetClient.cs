@@ -30,7 +30,7 @@ public class NetClient : NetworkDiscovery
 
         if (useNetworkManager)
         {
-            Debug.Log("received message from:" + fromAddress + " message:" + data);
+        //    Debug.Log("received message from:" + fromAddress + " message:" + data);
 
 
             if (items.Length == 3 && items[0] == "NetworkManager")
