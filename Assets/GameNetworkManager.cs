@@ -59,7 +59,7 @@ public class GameNetworkManager : NetworkManager {
         RefreshPlayersList();
 
     }
-
+    /*
     public override void OnClientConnect(NetworkConnection conn)
     {
         base.OnClientConnect(conn);
@@ -73,6 +73,6 @@ public class GameNetworkManager : NetworkManager {
 
         RefreshPlayersList();
     }
-
+*/
 
 }
