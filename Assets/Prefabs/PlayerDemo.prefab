@@ -191,7 +191,7 @@ Rigidbody2D:
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 0
 --- !u!58 &58191798611232760
 CircleCollider2D:
@@ -304,7 +304,7 @@ MonoBehaviour:
     name: Root Rotation
     isRoot: 1
     crusher:
-      _trsType: 1
+      _trsType: 2
       defaultTransform: {fileID: 0}
       uniformAxes: 0
       xcrusher:
@@ -323,19 +323,19 @@ MonoBehaviour:
         maxEncodedVal: 1023
         centerValue: 0
         centerEncodedValue: 511
-        _trsType: 1
+        _trsType: 2
         _limitRange: 0
         _useHalfRangeX: 1
         _bitsDeterminedBy: 10
         _bits: 0a000000060000000500000000000000
         _min: -90
         _max: 90
-        _resolution: 1023
+        _resolution: 6
         _precision: 0.17595308
         thresh: 00000000000000000000000000000000
       ycrusher:
         showEnableToggle: 1
-        enabled: 0
+        enabled: 1
         accurateCenter: 0
         outOfBoundsHandling: 1
         encoder: 11.375
@@ -349,14 +349,14 @@ MonoBehaviour:
         maxEncodedVal: 4095
         centerValue: 0
         centerEncodedValue: 2047
-        _trsType: 1
+        _trsType: 2
         _limitRange: 0
         _useHalfRangeX: 0
         _bitsDeterminedBy: 12
         _bits: 0c000000080000000600000000000000
         _min: -180
         _max: 180
-        _resolution: 4095
+        _resolution: 11
         _precision: 0.08791209
         thresh: 00000000000000000000000000000000
       zcrusher:
@@ -375,14 +375,14 @@ MonoBehaviour:
         maxEncodedVal: 1023
         centerValue: 0
         centerEncodedValue: 511
-        _trsType: 1
+        _trsType: 2
         _limitRange: 0
         _useHalfRangeX: 0
         _bitsDeterminedBy: 10
         _bits: 0a000000060000000500000000000000
         _min: -180
         _max: 180
-        _resolution: 1023
+        _resolution: 3
         _precision: 0.35190615
         thresh: 00000000000000000000000000000000
       ucrusher:
@@ -408,7 +408,7 @@ MonoBehaviour:
         _bits: 08000000040000000400000000000000
         _min: -10
         _max: 10
-        _resolution: 255
+        _resolution: 13
         _precision: 0.078431375
         thresh: 00000000000000000000000000000000
       qcrusher:
@@ -422,8 +422,8 @@ MonoBehaviour:
       local: 0
       enableTRSTypeSelector: 0
     index: 0
-    drawerHeight: 360
-    nst: {fileID: 0}
+    drawerHeight: 188
+    nst: {fileID: 114262573393016118}
     na: {fileID: 0}
     sendCullMask: 30
     keyRate: 5
