@@ -78,6 +78,8 @@ public class Player : NetworkBehaviour
     // Use this for initialization
     void Start() {
         rbody2d = GetComponent<Rigidbody2D>();
+
+        PaintRenderer.color = GetComponent<SpriteRenderer>().color;
         //currentColor = GetComponent<SpriteRenderer>().color;
 
         originalScale = transform.lossyScale;

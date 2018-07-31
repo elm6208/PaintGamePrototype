@@ -580,7 +580,7 @@ MonoBehaviour:
   PaintRenderer: {fileID: 1583583120}
   speed: 0.1
   fireRate: 0.2
-  projectile: {fileID: 1002920986130820, guid: 0f3074ad60cdc52468d336f269e5029c, type: 2}
+  projectile: {fileID: 1135003778089410, guid: 7be935653b256504ba46ef8d2d6e9180, type: 2}
   currentColor: {r: 0, g: 0, b: 0, a: 0}
   numCaptured: 0
   maxHealth: 3
@@ -1077,7 +1077,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &350549144
 Transform:
   m_ObjectHideFlags: 0
@@ -2216,14 +2216,14 @@ MonoBehaviour:
   m_ScriptCRCCheck: 1
   m_MaxDelay: 0.01
   m_LogLevel: 2
-  m_PlayerPrefab: {fileID: 1391923733970036, guid: 7cf7d23acdd76434c9609966ca450c2a,
+  m_PlayerPrefab: {fileID: 1088127431696466, guid: 7cf7d23acdd76434c9609966ca450c2a,
     type: 2}
   m_AutoCreatePlayer: 1
   m_PlayerSpawnMethod: 0
   m_OfflineScene: 
   m_OnlineScene: 
   m_SpawnPrefabs:
-  - {fileID: 1002920986130820, guid: 0f3074ad60cdc52468d336f269e5029c, type: 2}
+  - {fileID: 1135003778089410, guid: 7be935653b256504ba46ef8d2d6e9180, type: 2}
   - {fileID: 1497807407116340, guid: 6d46b8b5e86418846b4d4a1ae331d902, type: 2}
   - {fileID: 1030505509690934, guid: 3d2041edf55d30f43a05eaed032e68cd, type: 2}
   - {fileID: 1831451265255738, guid: 5d14f97abc79bcf4d87d97af2d8b892f, type: 2}
@@ -2693,7 +2693,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1028160878
 Transform:
   m_ObjectHideFlags: 0
@@ -4081,7 +4081,7 @@ MonoBehaviour:
   PaintRenderer: {fileID: 1830911217}
   speed: 0.1
   fireRate: 0.2
-  projectile: {fileID: 1002920986130820, guid: 0f3074ad60cdc52468d336f269e5029c, type: 2}
+  projectile: {fileID: 1135003778089410, guid: 7be935653b256504ba46ef8d2d6e9180, type: 2}
   currentColor: {r: 0, g: 0, b: 0, a: 0}
   numCaptured: 0
   maxHealth: 3
@@ -4574,7 +4574,7 @@ MonoBehaviour:
   PaintRenderer: {fileID: 1042343956}
   speed: 0.1
   fireRate: 0.8
-  projectile: {fileID: 1002920986130820, guid: 0f3074ad60cdc52468d336f269e5029c, type: 2}
+  projectile: {fileID: 1135003778089410, guid: 7be935653b256504ba46ef8d2d6e9180, type: 2}
   currentColor: {r: 0, g: 0, b: 0, a: 0}
   numCaptured: 0
   maxHealth: 3
@@ -4914,7 +4914,7 @@ MonoBehaviour:
   PaintRenderer: {fileID: 1968739376}
   speed: 0.1
   fireRate: 0.2
-  projectile: {fileID: 1002920986130820, guid: 0f3074ad60cdc52468d336f269e5029c, type: 2}
+  projectile: {fileID: 1135003778089410, guid: 7be935653b256504ba46ef8d2d6e9180, type: 2}
   currentColor: {r: 0, g: 0, b: 0, a: 0}
   numCaptured: 0
   maxHealth: 3
