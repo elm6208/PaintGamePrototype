@@ -30,7 +30,7 @@ public class Player : NetworkBehaviour {
     
     private Collider2D cCollider;
     private GameManager gameManager;
-
+    
     public string playerName;
 
     public static Player localPlayer;
@@ -138,6 +138,8 @@ public class Player : NetworkBehaviour {
             //only allow controls for the player you're controlling
             if (isServer)
             {
+                
+
                 // if speed power up is active, count down
                 if (speedPowerUpActive)
                 {
@@ -169,7 +171,7 @@ public class Player : NetworkBehaviour {
                 }
             }
 
-            if (isLocalPlayer)
+            if (isLocalPlayer && localPlayerAuthority)
             {
                 // Move character towards mouse if right click is held down
                 if (Input.GetMouseButton(0))

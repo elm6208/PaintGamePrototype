@@ -6,6 +6,7 @@ using UnityEngine.Networking;
 // Goes on Plane object, controls paint trails
 public class TextureDrawing : NetworkBehaviour {
 
+    
     private Texture2D texture;
     private MeshRenderer rend;
     
@@ -36,7 +37,7 @@ public class TextureDrawing : NetworkBehaviour {
         instance = this;
     }
 
-    public Camera UpdateCam;
+    //public Camera UpdateCam;
 
     // Use this for initialization
     void Start () {
@@ -88,7 +89,7 @@ public class TextureDrawing : NetworkBehaviour {
                     var lastPosition = previousPositions[p];
                     if (Vector3.Distance(currentPosition, lastPosition) < threshhold)
                     {
-                        continue;
+                      //  continue;
                     }
                 }
                 previousPositions[p] = currentPosition;

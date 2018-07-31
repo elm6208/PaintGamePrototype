@@ -3,10 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
+public enum PickupType
+{
+    PaintBomb,
+    Speed,
+    Trail,
+    Health
+}
+
 public class Pickup : NetworkBehaviour
 {
     private int explosionDiameter;
-    public int type; //type of pickup
+    public PickupType type; //type of pickup
 
 	// Use this for initialization
 	void Start () {
@@ -30,7 +38,7 @@ public class Pickup : NetworkBehaviour
             {
   
             //paint bomb
-            if(type == 0)
+            if(type == PickupType.PaintBomb)
             {
                 Color color = col.GetComponent<Player>().currentColor;
                 //trigger explosion on TextureDrawing
@@ -38,19 +46,19 @@ public class Pickup : NetworkBehaviour
                     NetworkServer.Destroy(this.gameObject);
                 }
                 //health refill
-                if (type == 1)
+                if (type == PickupType.Health)
             {
                 col.GetComponent<Player>().health = col.GetComponent<Player>().maxHealth;
                     NetworkServer.Destroy(this.gameObject);
                 }
                 //speed increase
-                if (type == 2)
+                if (type == PickupType.Speed)
             {
                 col.GetComponent<Player>().SpeedPowerUp();
                     NetworkServer.Destroy(this.gameObject);
                 }
                 //trail size increase
-                if (type == 3)
+                if (type == PickupType.Trail)
             {
                 col.GetComponent<Player>().TrailPowerUp();
                     NetworkServer.Destroy(this.gameObject);

@@ -52,6 +52,11 @@ public class GameManager : NetworkBehaviour {
         {
             allPlayers[i].GetComponent<Player>().playerName = "Player " + (i + 1);
         }
+
+        topPlayer = allPlayers[0].GetComponent<Player>();
+
+        endGameText.gameObject.SetActive(false);
+
     }
 	
 	// Update is called once per frame
