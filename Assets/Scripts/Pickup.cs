@@ -18,7 +18,7 @@ public class Pickup : NetworkBehaviour
 
 	// Use this for initialization
 	void Start () {
-        explosionDiameter = 20;
+        explosionDiameter = 80;
 
         //set z to zero to make raycast accurate
         transform.position = new Vector3(transform.position.x, transform.position.y, 0); 

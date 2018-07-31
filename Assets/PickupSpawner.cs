@@ -13,7 +13,7 @@ public class PickupSpawner : NetworkBehaviour {
     public List<Transform> StartPositions;
 
     //Make sure this is the same prefab in the GameNetworkManager
-    public GameObject PickupPrefab;
+    public List<GameObject> PickupPrefabs;
 
     public void SpawnAllPickups()
     {
@@ -36,7 +36,9 @@ public class PickupSpawner : NetworkBehaviour {
 
     public void SpawnPickup(Transform reference)
     {
-        var prefab = GameObject.Instantiate(PickupPrefab);
+        int pickupNum = Random.Range(0, PickupPrefabs.Count);
+
+        var prefab = GameObject.Instantiate(PickupPrefabs[pickupNum]);
         prefab.transform.position = reference.position;
         prefab.transform.rotation = reference.rotation;
 

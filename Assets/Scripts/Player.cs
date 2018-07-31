@@ -62,7 +62,7 @@ public class Player : NetworkBehaviour {
     private bool trailPowerUpActive = false;
     [SyncVar]
     private float trailPowerUpTimeLeft = 10;
-    [SyncVar]
+    [SyncVar] 
     private int startPWidth; // holds original trail size to return to when trail powerup ends
 
     static int which = 0;
@@ -339,10 +339,7 @@ public class Player : NetworkBehaviour {
     //Capture another player
     public void Capture(Player capturedPlayer)
     {
-        if (isLocalPlayer)
-        {
-            PlayerObjectReferences.singleton.capturedText.text = "Captured: " + numCaptured;
-        }
+        
         if (isServer)
         {
             //increase size by 1/2 of captured player's size, ints are rounded
@@ -365,6 +362,11 @@ public class Player : NetworkBehaviour {
             pWidth = (3 + Mathf.FloorToInt((currentSize - 1) / 3));
             startPWidth = pWidth;
 
+        }
+
+        if (isLocalPlayer)
+        {
+            PlayerObjectReferences.singleton.capturedText.text = "Captured: " + numCaptured;
         }
     }
 

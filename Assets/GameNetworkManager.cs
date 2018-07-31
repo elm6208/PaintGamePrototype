@@ -40,14 +40,14 @@ public class GameNetworkManager : NetworkManager {
         }
 
         players = PlayersList;
-
-
+        
         ConnectionStateManager.singleton.RpcUpdateConnectedPlayersState();
     }
 
     public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId)
     {
         base.OnServerAddPlayer(conn, playerControllerId);
+        ConnectionStateManager.singleton.NumConnected += 1;
         RefreshPlayersList();
 
     }
@@ -55,7 +55,7 @@ public class GameNetworkManager : NetworkManager {
     public override void OnServerRemovePlayer(NetworkConnection conn, PlayerController player)
     {
         base.OnServerRemovePlayer(conn, player);
-
+        ConnectionStateManager.singleton.NumConnected -= 1;
         RefreshPlayersList();
 
     }

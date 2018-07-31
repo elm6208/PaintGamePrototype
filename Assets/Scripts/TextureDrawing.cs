@@ -111,8 +111,8 @@ public class TextureDrawing : NetworkBehaviour {
 
 
                     //position to draw set of pixels from, subtract half of trail width to center it
-                    float xPos = texture.width - (uv.x * texture.width) - (p.pWidth / 2);
-                    float yPos = texture.height - (-uv.y * texture.height) - (p.pWidth / 2);
+                    float xPos = texture.width - (uv.x * texture.width) - ((p.pWidth * scale) / 2);
+                    float yPos = texture.height - (-uv.y * texture.height) - ((p.pWidth * scale) / 2);
 
 
                     //corners of square being drawn
@@ -121,23 +121,25 @@ public class TextureDrawing : NetworkBehaviour {
                     float minY = yPos;
                     float maxY = yPos + p.pWidth;
 
+                    Debug.Log("xPos: " + xPos + ", yPos: " + yPos);
+
                     //find difference between corner and plane edge, move square corner accordingly to avoid going off the edge
                     //this currently causes a snapping effect with the trail when approaching some of the walls
-                    if (minX < planeMinX)
+                    if (minX - (p.pWidth * scale / 2) < planeMinX)
                     {
                         xPos = planeMinX;
                     }
-                    if ((maxX + p.pWidth) > planeMaxX)
+                    if ((maxX + (p.pWidth * scale)) > planeMaxX)
                     {
-                        xPos = planeMaxX - p.pWidth;
+                        xPos = planeMaxX - (p.pWidth * scale);
                     }
-                    if (minY - p.pWidth < planeMinY)
+                    if (minY - (p.pWidth * scale / 2) < planeMinY)
                     {
                         yPos = planeMinY;
                     }
                     if (maxY > planeMaxY)
                     {
-                        yPos = planeMaxY - p.pWidth;
+                        yPos = planeMaxY - (p.pWidth * scale);
                     }
 
                     //make color array to draw

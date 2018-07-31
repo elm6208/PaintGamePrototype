@@ -2197,7 +2197,7 @@ MonoBehaviour:
   m_OnlineScene: 
   m_SpawnPrefabs:
   - {fileID: 1002920986130820, guid: 0f3074ad60cdc52468d336f269e5029c, type: 2}
-  - {fileID: 1033246483452546, guid: 5525847b794815d46b05bed798eea549, type: 2}
+  - {fileID: 1853458762882828, guid: 5525847b794815d46b05bed798eea549, type: 2}
   - {fileID: 1030505509690934, guid: 3d2041edf55d30f43a05eaed032e68cd, type: 2}
   - {fileID: 1831451265255738, guid: 5d14f97abc79bcf4d87d97af2d8b892f, type: 2}
   - {fileID: 1746649177597008, guid: 01e7b9b8af861cd46ac5674bf8da1804, type: 2}
@@ -2604,7 +2604,7 @@ TextMesh:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1026730955}
   m_Text: 0
-  m_OffsetZ: -0.1
+  m_OffsetZ: 0
   m_CharacterSize: 0.05
   m_LineSpacing: 1
   m_Anchor: 4
@@ -2805,7 +2805,7 @@ TextMesh:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1074584405}
   m_Text: 0
-  m_OffsetZ: -0.1
+  m_OffsetZ: 0
   m_CharacterSize: 0.05
   m_LineSpacing: 1
   m_Anchor: 4
@@ -3106,7 +3106,7 @@ TextMesh:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1274464265}
   m_Text: 0
-  m_OffsetZ: -0.1
+  m_OffsetZ: 0
   m_CharacterSize: 0.05
   m_LineSpacing: 1
   m_Anchor: 4
@@ -3423,8 +3423,11 @@ MonoBehaviour:
   - {fileID: 1182478437}
   - {fileID: 189798892}
   - {fileID: 17627423}
-  PickupPrefab: {fileID: 1033246483452546, guid: 5525847b794815d46b05bed798eea549,
-    type: 2}
+  PickupPrefabs:
+  - {fileID: 1853458762882828, guid: 5525847b794815d46b05bed798eea549, type: 2}
+  - {fileID: 1030505509690934, guid: 3d2041edf55d30f43a05eaed032e68cd, type: 2}
+  - {fileID: 1831451265255738, guid: 5d14f97abc79bcf4d87d97af2d8b892f, type: 2}
+  - {fileID: 1746649177597008, guid: 01e7b9b8af861cd46ac5674bf8da1804, type: 2}
 --- !u!4 &1464911496
 Transform:
   m_ObjectHideFlags: 0
@@ -3539,7 +3542,7 @@ TextMesh:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1556483282}
   m_Text: 0
-  m_OffsetZ: -0.1
+  m_OffsetZ: 0
   m_CharacterSize: 0.05
   m_LineSpacing: 1
   m_Anchor: 4
