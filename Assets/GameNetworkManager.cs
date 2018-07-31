@@ -60,5 +60,19 @@ public class GameNetworkManager : NetworkManager {
 
     }
 
+    public override void OnClientConnect(NetworkConnection conn)
+    {
+        base.OnClientConnect(conn);
+
+        RefreshPlayersList();
+    }
+
+    public override void OnClientDisconnect(NetworkConnection conn)
+    {
+        base.OnClientDisconnect(conn);
+
+        RefreshPlayersList();
+    }
+
 
 }

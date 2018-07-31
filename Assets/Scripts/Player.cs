@@ -7,6 +7,8 @@ using UnityEngine.Networking;
 [RequireComponent(typeof(NetworkIdentity))]
 public class Player : NetworkBehaviour {
 
+    public SpriteRenderer PaintRenderer;
+
     private Rigidbody2D rbody2d;
     private Vector3 mousePos;
 
@@ -116,6 +118,7 @@ public class Player : NetworkBehaviour {
     {
         currentColor = color;
         GetComponent<SpriteRenderer>().color = color;
+        PaintRenderer.color = color;
 
     }
 

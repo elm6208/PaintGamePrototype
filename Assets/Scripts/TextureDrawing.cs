@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 public class TextureDrawing : NetworkBehaviour {
 
     
-    private Texture2D texture;
+    public RenderTexture colorTexture;
     private MeshRenderer rend;
     
     public Text colorText;
@@ -32,6 +32,7 @@ public class TextureDrawing : NetworkBehaviour {
 
     public Color emptyColor = Color.red;
 
+    protected bool isCounting = false;
     private void Awake()
     {
         instance = this;
@@ -42,11 +43,12 @@ public class TextureDrawing : NetworkBehaviour {
     // Use this for initialization
     void Start () {
 
-        texture = new Texture2D(192*2, 108*2);
+       // texture = new Texture2D(192*2, 108*2);
         rend = GetComponent<MeshRenderer>();
-        texture.filterMode = FilterMode.Point;
-        
+        // texture.filterMode = FilterMode.Point;
+
         //set plane values
+        /*
         float planeWidth = texture.width;
         float planeHeight = texture.height;
 
@@ -57,6 +59,10 @@ public class TextureDrawing : NetworkBehaviour {
 
         ResetBoard();
         rend.material.mainTexture = texture;
+        */
+
+        ResetBoard();
+        rend.material.mainTexture = colorTexture;
 
     }
 
@@ -69,7 +75,7 @@ public class TextureDrawing : NetworkBehaviour {
         {
             ColorPercentages.Add(0);
         }
-
+        /*
         if (texture != null)
         {
             bool HaveChanges = false;
@@ -165,23 +171,39 @@ public class TextureDrawing : NetworkBehaviour {
 
         }
 
+    */
+
         if (isServer)
         {
-            CountColors();
+            if( !isCounting)
+            {
+                StartCoroutine("CountColors");
+
+            }
         }
         UpdateUI();
     }
 
     // calculate how much of each color is on the canvas
-    private void CountColors()
+    private IEnumerator CountColors()
     {
+        isCounting = true;
+        Texture2D texture = new Texture2D(colorTexture.width, colorTexture.height);
+
+        RenderTexture.active = colorTexture;
+        texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
+        texture.Apply();
+
         Color[] colors = texture.GetPixels();
         
         int[] colorNums = new int[allColors.Count];
 
+        int maxPerFrame = 5000;
+        int currentCount = 0;
         //count pixels of each individual color
         for (int i = 0; i < colors.Length; i++)
         {
+            currentCount += 1;
             Color colorC = colors[i];
 
 
@@ -196,6 +218,12 @@ public class TextureDrawing : NetworkBehaviour {
                 {
                     colorNums[j] = colorNums[j] + 1;
                 }
+            }
+
+            if(currentCount >= maxPerFrame)
+            {
+                currentCount = 0;
+                yield return null;
             }
             
         }
@@ -219,7 +247,7 @@ public class TextureDrawing : NetworkBehaviour {
         }
 
 
-    
+        isCounting = false;
     }
 
     public void UpdateUI()
@@ -242,6 +270,7 @@ public class TextureDrawing : NetworkBehaviour {
 
     public void ResetBoard()
     {
+        /*
         Color[] pixels = new Color[texture.width * texture.height];
         for (int i = 0; i < pixels.Length; i++)
         {
@@ -249,12 +278,20 @@ public class TextureDrawing : NetworkBehaviour {
         }
         texture.SetPixels(pixels);
         texture.Apply();
+        */
+        Debug.Log("reset board called");
+        RenderTexture rt = UnityEngine.RenderTexture.active;
+        UnityEngine.RenderTexture.active = colorTexture;
+        GL.Clear(true, true, Color.clear);
+       
+        UnityEngine.RenderTexture.active = rt;
     }
 
     //cover area based on given color and position
     [ClientRpc]
     public void RpcPaintExplosion(Color c, Vector3 pos, int explosionDiameter)
     {
+        /*
         //array of color to fill
         Color[] colors = new Color[explosionDiameter * explosionDiameter];
 
@@ -302,7 +339,7 @@ public class TextureDrawing : NetworkBehaviour {
             texture.SetPixels((int)xPos, (int)yPos, explosionDiameter, explosionDiameter, colors);
             
         }
-
+        */
         
     }
 
