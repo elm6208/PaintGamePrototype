@@ -284,7 +284,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   na: {fileID: 114081902098154882}
-  _state: 3
+  _state: 2
   ignoreStateUntil: 2
   sendEveryXTick: 1
   desiredBufferMS: 0.1
