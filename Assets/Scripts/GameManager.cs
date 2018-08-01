@@ -114,4 +114,9 @@ public class GameManager : NetworkBehaviour {
         endGameText.text = endGameText.text + ", TOP PLAYER: " + topPlayer.playerName;
         
     }
+
+    public void LocalPlayerShoot()
+    {
+        Player.localPlayer.TryToShoot();
+    }
 }

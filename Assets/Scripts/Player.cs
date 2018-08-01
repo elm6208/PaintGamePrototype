@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(NetworkIdentity))]
 
@@ -194,40 +195,99 @@ override public void OnStartLocalPlayer()
 
             if (identity.isLocalPlayer && identity.localPlayerAuthority)
             {
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+
                 // Move character towards mouse if right click is held down
                 if (Input.GetMouseButton(0))
                 {
-                    //get position to set ball to
-                    var target = ScreenToWorld(Input.mousePosition);
+                    if (!EventSystem.current.IsPointerOverGameObject())
+                    {
+                        bool dontSkip = true;
+                        //get position to set ball to
+                        var target = ScreenToWorld(Input.mousePosition);
 
-                    transform.position = Vector3.MoveTowards(transform.position, target, speed);
+                        //if target is equal to the current position, skip the below portion
+                        if (target == transform.position)
+                        {
+                            dontSkip = false;
+                        }
+                        if (dontSkip)
+                        {
 
-                                      
-                    Vector3 pos = transform.position;
-                    pos.z = 0;
-                    transform.position = pos;
+                            transform.position = Vector3.MoveTowards(transform.position, target, speed);
 
-                    //get rotation to set ball to
-                    Vector3 difference = ScreenToWorld(Input.mousePosition) - transform.position;
-                    difference.Normalize();
-                    float z_rotation = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
-                    transform.rotation = Quaternion.Euler(0f, 0f, z_rotation);
+                            Vector3 pos = transform.position;
+                            pos.z = 0;
+                            transform.position = pos;
+
+                            //get rotation to set ball to
+                            Vector3 difference = ScreenToWorld(Input.mousePosition) - transform.position;
+                            difference.Normalize();
+                            float z_rotation = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
+                            transform.rotation = Quaternion.Euler(0f, 0f, z_rotation);
+
+                        }
+                    }
+                        
+
+
                 }
                 //on left click, fire a projectile
                 if (Input.GetMouseButton(1) || Input.GetKeyUp(KeyCode.Space))
                 {
-                    if (Time.time > fireRate + lastShot)
+                    TryToShoot();
+                }
+#endif
+
+#if UNITY_ANDROID
+
+                if(Input.touchCount > 0)
+                {
+                    foreach(Touch touch in Input.touches)
                     {
-                        if (identity.isServer)
+                        if(!EventSystem.current.IsPointerOverGameObject(touch.fingerId) && (touch.phase != TouchPhase.Ended && touch.phase != TouchPhase.Canceled))
                         {
-                            FireProjectile();
-                        } else
-                        {
-                            CmdFireProjectile();
+                            //PlayerObjectReferences.singleton.capturedText.text = "NOT OVER OBJ";
+                            bool dontSkip = true;
+                            //get position to set ball to
+                            var target = ScreenToWorld(touch.position);
+
+                            //if target is equal to the current position, skip the below portion
+                            if (target == transform.position)
+                            {
+                                dontSkip = false;
+                            }
+                            if (dontSkip)
+                            {
+
+                                transform.position = Vector3.MoveTowards(transform.position, target, speed);
+
+                                Vector3 pos = transform.position;
+                                pos.z = 0;
+                                transform.position = pos;
+
+                                //get rotation to set ball to
+                                Vector3 difference = ScreenToWorld(Input.mousePosition) - transform.position;
+                                difference.Normalize();
+                                float z_rotation = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
+                                transform.rotation = Quaternion.Euler(0f, 0f, z_rotation);
+
+                            }
+
                         }
+                        else
+                        {
+                            //PlayerObjectReferences.singleton.capturedText.text = "OVER";
+                        }
+                        
                     }
                 }
-                
+
+#endif
+
+
+
+
 
 
             }
@@ -245,8 +305,27 @@ override public void OnStartLocalPlayer()
         }
     }
     
+    //tries to fire a projectile
+    public void TryToShoot()
+    {
+        if (identity.isLocalPlayer && identity.localPlayerAuthority)
+        {
+            if (Time.time > fireRate + lastShot)
+            {
+                if (identity.isServer)
+                {
+                    FireProjectile();
+                }
+                else
+                {
+                    CmdFireProjectile();
+                }
+            }
+        }
+            
+    }
 
-    // Get world position of mouse click
+    // Get world position of mouse click, only pass in clicks/touches that are not over UI
     Vector3 ScreenToWorld(Vector2 screenPos)
     {
         //Create ray
@@ -256,7 +335,10 @@ override public void OnStartLocalPlayer()
         // ray hit an object, return hit position
         if (Physics.Raycast(ray, out hit))
         {
-                return hit.point;
+
+            return hit.point;
+            
+            
         }
         
         //if ray hits nothing, player stays in place
