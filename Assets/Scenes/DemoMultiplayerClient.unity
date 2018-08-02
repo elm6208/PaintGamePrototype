@@ -580,8 +580,10 @@ MonoBehaviour:
   PaintRenderer: {fileID: 1583583120}
   speed: 0.1
   fireRate: 0.2
+  shotTimeLeft: 0
   projectile: {fileID: 1135003778089410, guid: 7be935653b256504ba46ef8d2d6e9180, type: 2}
-  currentColor: {r: 0, g: 0, b: 0, a: 0}
+  currentColor: {r: 0.9485289, g: 0.8392157, b: 1, a: 1}
+  originalColor: {r: 0.9485289, g: 0.8392157, b: 1, a: 1}
   numCaptured: 0
   maxHealth: 3
   health: 3
@@ -592,6 +594,7 @@ MonoBehaviour:
   PlayerCameraPrefab: {fileID: 0}
   PlayerCameraObject: {fileID: 0}
   healthText: {fileID: 1074584407}
+  buttonFingerID: -1
 --- !u!50 &262814825
 Rigidbody2D:
   serializedVersion: 4
@@ -894,14 +897,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45493d006d29f8e49a613893a14f0668, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TotalTime: 200
-  timeLeft: 200
+  TotalTime: 120
+  timeLeft: 120
   endGameText: {fileID: 1429564011}
   timerText: {fileID: 711431293}
   gameOver: 0
   gameIsActive: 0
   topPlayer: {fileID: 0}
-  textureDrawing: {fileID: 0}
+  textureDrawing: {fileID: 1616250952}
   AutoStart: 0
 --- !u!4 &291701139
 Transform:
@@ -2050,7 +2053,7 @@ RectTransform:
   m_GameObject: {fileID: 909469153}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.68000007, y: 0.6800003, z: 0.6800003}
   m_Children:
   - {fileID: 1317173124}
   - {fileID: 241360204}
@@ -2061,7 +2064,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 60, y: -60}
+  m_AnchoredPosition: {x: 40.6, y: -43.1}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &909469155
@@ -2583,7 +2586,6 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_Children:
   - {fileID: 929145987}
-  - {fileID: 1143214369}
   m_Father: {fileID: 0}
   m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3057,8 +3059,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 50}
-  m_SizeDelta: {x: 200, y: 100}
+  m_AnchoredPosition: {x: 0, y: 15.599976}
+  m_SizeDelta: {x: 200, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1111593401
 MonoBehaviour:
@@ -3125,13 +3127,13 @@ RectTransform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1143214368}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 604330916}
-  m_Father: {fileID: 978294689}
-  m_RootOrder: 1
+  m_Father: {fileID: 1999835163}
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -4365,8 +4367,10 @@ MonoBehaviour:
   PaintRenderer: {fileID: 1830911217}
   speed: 0.1
   fireRate: 0.2
+  shotTimeLeft: 0
   projectile: {fileID: 1135003778089410, guid: 7be935653b256504ba46ef8d2d6e9180, type: 2}
   currentColor: {r: 0, g: 0, b: 0, a: 0}
+  originalColor: {r: 0.8849213, g: 1, b: 0.8392157, a: 1}
   numCaptured: 0
   maxHealth: 3
   health: 3
@@ -4377,6 +4381,7 @@ MonoBehaviour:
   PlayerCameraPrefab: {fileID: 0}
   PlayerCameraObject: {fileID: 0}
   healthText: {fileID: 1026730957}
+  buttonFingerID: -1
 --- !u!50 &1775817251
 Rigidbody2D:
   serializedVersion: 4
@@ -4858,8 +4863,10 @@ MonoBehaviour:
   PaintRenderer: {fileID: 1042343956}
   speed: 0.1
   fireRate: 0.8
+  shotTimeLeft: 0
   projectile: {fileID: 1135003778089410, guid: 7be935653b256504ba46ef8d2d6e9180, type: 2}
   currentColor: {r: 0, g: 0, b: 0, a: 0}
+  originalColor: {r: 1, g: 0.8437467, b: 0.8392157, a: 1}
   numCaptured: 0
   maxHealth: 3
   health: 3
@@ -4870,6 +4877,7 @@ MonoBehaviour:
   PlayerCameraPrefab: {fileID: 0}
   PlayerCameraObject: {fileID: 0}
   healthText: {fileID: 1556483284}
+  buttonFingerID: -1
 --- !u!114 &1954041974
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5198,8 +5206,10 @@ MonoBehaviour:
   PaintRenderer: {fileID: 1968739376}
   speed: 0.1
   fireRate: 0.2
+  shotTimeLeft: 0
   projectile: {fileID: 1135003778089410, guid: 7be935653b256504ba46ef8d2d6e9180, type: 2}
-  currentColor: {r: 0, g: 0, b: 0, a: 0}
+  currentColor: {r: 0.99677145, g: 1, b: 0.8392157, a: 1}
+  originalColor: {r: 0.99677145, g: 1, b: 0.8392157, a: 1}
   numCaptured: 0
   maxHealth: 3
   health: 3
@@ -5210,6 +5220,7 @@ MonoBehaviour:
   PlayerCameraPrefab: {fileID: 0}
   PlayerCameraObject: {fileID: 0}
   healthText: {fileID: 1274464267}
+  buttonFingerID: -1
 --- !u!50 &1992587451
 Rigidbody2D:
   serializedVersion: 4
@@ -5429,7 +5440,7 @@ MonoBehaviour:
   m_Script: {fileID: 1980459831, guid: f70555f144d8491a825f0804e09c671c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
@@ -5472,6 +5483,7 @@ RectTransform:
   - {fileID: 1429564010}
   - {fileID: 909469154}
   - {fileID: 1111593400}
+  - {fileID: 1143214369}
   m_Father: {fileID: 0}
   m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -5655,7 +5667,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294966783
+    m_Bits: 4294966271
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0

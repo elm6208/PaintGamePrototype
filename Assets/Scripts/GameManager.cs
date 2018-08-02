@@ -50,7 +50,14 @@ public class GameManager : NetworkBehaviour {
         //name them
         for (int i = 0; i < allPlayers.Count; i++)
         {
-            allPlayers[i].GetComponent<Player>().playerName = "Player " + (i + 1);
+            Player currentP = allPlayers[i].GetComponent<Player>();
+            currentP.playerName = "Player " + (i + 1);
+            currentP.maxHealth = 3;
+            currentP.health = currentP.maxHealth;
+            currentP.currentSize = 1;
+            currentP.numCaptured = 0;
+            currentP.ScramblePosition();
+            currentP.SetColor(currentP.originalColor);
         }
 
         topPlayer = allPlayers[0].GetComponent<Player>();

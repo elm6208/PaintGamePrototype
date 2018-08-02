@@ -11,7 +11,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/Demo.unity
     guid: 0a89376c93dd3b14d97d23195511bc16
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/DemoMultiplayerServer.unity
     guid: 80ca2e2ec194e4447a20854f8bc3202a
   - enabled: 0

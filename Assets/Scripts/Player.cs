@@ -19,11 +19,16 @@ public class Player : NetworkBehaviour
     public float fireRate;
 
     [SyncVar]
+    public float shotTimeLeft = 0.0f;
+
+    [SyncVar]
     private float lastShot = 0f;
     public GameObject projectile;
 
     [SyncVar(hook ="SetColor")]
     public Color currentColor;
+
+    public Color originalColor;
     
     public int numCaptured = 0; //how many other players they've captured
 
@@ -75,17 +80,22 @@ public class Player : NetworkBehaviour
     [SyncVar] 
     private int startPWidth; // holds original trail size to return to when trail powerup ends
 
+    [SyncVar]
+    public int buttonFingerID = -1;
+
+    private GameObject forwardIndicator;
+
     static int which = 0;
     // Use this for initialization
     void Start() {
         rbody2d = GetComponent<Rigidbody2D>();
-
-        PaintRenderer.color = GetComponent<SpriteRenderer>().color;
-        //currentColor = GetComponent<SpriteRenderer>().color;
+        PaintRenderer.color = currentColor;
 
         originalScale = transform.lossyScale;
         cCollider = GetComponent<Collider2D>();
         gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
+
+        forwardIndicator = transform.GetChild(0).gameObject;
         
     }
 
@@ -103,15 +113,23 @@ override public void OnStartLocalPlayer()
 
     override public void OnStartServer()
     {
+
         base.OnStartServer();
         pWidth = 3;
         var colors = TextureDrawing.instance.allColors;
 
-        //int which = (int)Random.Range(0, colors.Length - 1);
-        currentColor = colors[which];
+        //Im a non player
+        if (identity.playerControllerId == -1)
+        {
+            currentColor = originalColor;
+        }
+        else
+        {
+            //int which = (int)Random.Range(0, colors.Length - 1);
+            currentColor = colors[which];
 
-        which = (which + 1) % colors.Count;
-
+            which = (which + 1) % colors.Count;
+        }
         healthText.GetComponent<Renderer>().sortingOrder = GetComponent<SpriteRenderer>().sortingOrder + 1;
         startSpeed = speed;
         startPWidth = pWidth;
@@ -133,7 +151,7 @@ override public void OnStartLocalPlayer()
     }
 
 
-    void SetColor(Color color)
+    public void SetColor(Color color)
     {
         currentColor = color;
         GetComponent<SpriteRenderer>().color = color;
@@ -148,7 +166,7 @@ override public void OnStartLocalPlayer()
         {
             //var campos = Vector3.MoveTowards(PlayerCameraObject.transform.position, this.transform.position, speed * 0.9f);
 
-            var campos = Vector3.Lerp(PlayerCameraObject.transform.position, this.transform.position, 0.5f * Time.deltaTime);
+            var campos = Vector3.Lerp(PlayerCameraObject.transform.position, this.transform.position,1);
             campos.z = PlayerCameraObject.transform.position.z;
             PlayerCameraObject.transform.position = campos;
         }
@@ -160,7 +178,7 @@ override public void OnStartLocalPlayer()
             //only allow controls for the player you're controlling
             if (identity.isServer)
             {
-                
+                shotTimeLeft = Time.time - (fireRate + lastShot);
 
                 // if speed power up is active, count down
                 if (speedPowerUpActive)
@@ -200,57 +218,12 @@ override public void OnStartLocalPlayer()
                 // Move character towards mouse if right click is held down
                 if (Input.GetMouseButton(0))
                 {
-                    if (!EventSystem.current.IsPointerOverGameObject())
+                    if((EventSystem.current.currentSelectedGameObject == null) || (EventSystem.current.currentSelectedGameObject.tag != "Button"))
                     {
-                        bool dontSkip = true;
-                        //get position to set ball to
-                        var target = ScreenToWorld(Input.mousePosition);
-
-                        //if target is equal to the current position, skip the below portion
-                        if (target == transform.position)
-                        {
-                            dontSkip = false;
-                        }
-                        if (dontSkip)
-                        {
-
-                            transform.position = Vector3.MoveTowards(transform.position, target, speed);
-
-                            Vector3 pos = transform.position;
-                            pos.z = 0;
-                            transform.position = pos;
-
-                            //get rotation to set ball to
-                            Vector3 difference = ScreenToWorld(Input.mousePosition) - transform.position;
-                            difference.Normalize();
-                            float z_rotation = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
-                            transform.rotation = Quaternion.Euler(0f, 0f, z_rotation);
-
-                        }
-                    }
                         
-
-
-                }
-                //on left click, fire a projectile
-                if (Input.GetMouseButton(1) || Input.GetKeyUp(KeyCode.Space))
-                {
-                    TryToShoot();
-                }
-#endif
-
-#if UNITY_ANDROID
-
-                if(Input.touchCount > 0)
-                {
-                    foreach(Touch touch in Input.touches)
-                    {
-                        if(!EventSystem.current.IsPointerOverGameObject(touch.fingerId) && (touch.phase != TouchPhase.Ended && touch.phase != TouchPhase.Canceled))
-                        {
-                            //PlayerObjectReferences.singleton.capturedText.text = "NOT OVER OBJ";
                             bool dontSkip = true;
                             //get position to set ball to
-                            var target = ScreenToWorld(touch.position);
+                            var target = ScreenToWorld(Input.mousePosition);
 
                             //if target is equal to the current position, skip the below portion
                             if (target == transform.position)
@@ -273,15 +246,78 @@ override public void OnStartLocalPlayer()
                                 transform.rotation = Quaternion.Euler(0f, 0f, z_rotation);
 
                             }
+                        
+                    }
+                    
+                        
 
-                        }
-                        else
+
+                }
+                //on left click, fire a projectile
+                if (Input.GetMouseButton(1) || Input.GetKeyUp(KeyCode.Space))
+                {
+                    TryToShoot();
+                }
+#endif
+
+#if UNITY_ANDROID
+
+                if(Input.touchCount > 0)
+                {
+                    foreach(Touch touch in Input.touches)
+                    {
+                        if(buttonFingerID == -1 && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
                         {
-                            //PlayerObjectReferences.singleton.capturedText.text = "OVER";
+                            buttonFingerID = touch.fingerId;
+                            
                         }
+
+                        // Having trouble separating button press from moving the player, for now you can't move and shoot
+                       //if(!EventSystem.current.IsPointerOverGameObject(touch.fingerId) && (touch.phase != TouchPhase.Ended && touch.phase != TouchPhase.Canceled))
+                            if((touch.fingerId != buttonFingerID) && (touch.phase != TouchPhase.Ended && touch.phase != TouchPhase.Canceled))
+                         //if ((EventSystem.current.currentSelectedGameObject == null) || (EventSystem.current.currentSelectedGameObject.tag != "Button"))
+                            {
+                            
+                            
+                            
+                                bool dontSkip = true;
+                                //get position to set ball to
+                                var target = ScreenToWorld(touch.position);
+
+                                //if target is equal to the current position, skip the below portion
+                                if (target == transform.position)
+                                {
+                                    dontSkip = false;
+                                }
+                                if (dontSkip)
+                                {
+
+                                    transform.position = Vector3.MoveTowards(transform.position, target, speed);
+
+                                    Vector3 pos = transform.position;
+                                    pos.z = 0;
+                                    transform.position = pos;
+
+                                    //get rotation to set ball to
+                                    Vector3 difference = ScreenToWorld(touch.position) - transform.position;
+                                    difference.Normalize();
+                                    float z_rotation = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
+                                    transform.rotation = Quaternion.Euler(0f, 0f, z_rotation);
+
+                                }
+
+                            
+                        }
+                            
                         
                     }
                 }
+                else
+                {
+                    buttonFingerID = -1;
+                }
+
+                PlayerObjectReferences.singleton.capturedText.text = "buttonFingerID: " + buttonFingerID;
 
 #endif
 
@@ -354,16 +390,15 @@ override public void OnStartLocalPlayer()
         if (identity.isServer)
         {
             GameObject clone = Instantiate(projectile) as GameObject;
-            NetworkServer.Spawn(clone);
-
+            
             var proj = clone.GetComponent<Projectile>();
             proj.color = currentColor;
 
             proj.parentPlayer = this.gameObject.GetComponent<Player>();
-
-            clone.transform.position = transform.position + 0.5f * transform.right;
+            clone.transform.position = transform.position + transform.right * 2f;
             clone.transform.rotation = transform.rotation;
             lastShot = Time.time;
+            NetworkServer.Spawn(clone);
 
         }
     }
