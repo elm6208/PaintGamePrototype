@@ -23,8 +23,8 @@ GameObject:
   - component: {fileID: 114882256006828168}
   - component: {fileID: 212398456158281904}
   - component: {fileID: 58163109673338382}
-  - component: {fileID: 50855772322927038}
-  - component: {fileID: 114394520770370748}
+  - component: {fileID: 114097195744005136}
+  - component: {fileID: 50723473811571572}
   m_Layer: 0
   m_Name: Projectile
   m_TagString: Projectile
@@ -45,7 +45,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!50 &50855772322927038
+--- !u!50 &50723473811571572
 Rigidbody2D:
   serializedVersion: 4
   m_ObjectHideFlags: 1
@@ -80,7 +80,7 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.1
---- !u!114 &114394520770370748
+--- !u!114 &114097195744005136
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -91,8 +91,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9de747ec6d608d4b984ba2628a309b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  interpolationBackTime: 0.1
-  extrapolationMode: 1
+  interpolationBackTime: 0
+  extrapolationMode: 2
   useExtrapolationTimeLimit: 1
   extrapolationTimeLimit: 5
   useExtrapolationDistanceLimit: 0
@@ -107,22 +107,22 @@ MonoBehaviour:
   snapPositionThreshold: 0
   snapRotationThreshold: 0
   snapScaleThreshold: 0
-  positionLerpSpeed: 0.85
+  positionLerpSpeed: 1
   rotationLerpSpeed: 0.85
   scaleLerpSpeed: 0.85
-  timeCorrectionSpeed: 0.01
+  timeCorrectionSpeed: 0.6
   snapTimeThreshold: 5
   syncPosition: 0
   syncRotation: 0
   syncScale: 0
   syncVelocity: 0
   syncAngularVelocity: 0
-  isPositionCompressed: 0
-  isRotationCompressed: 0
+  isPositionCompressed: 1
+  isRotationCompressed: 1
   isScaleCompressed: 0
-  isVelocityCompressed: 0
-  isAngularVelocityCompressed: 0
-  whenToUpdateTransform: 1
+  isVelocityCompressed: 1
+  isAngularVelocityCompressed: 1
+  whenToUpdateTransform: 0
   sendRate: 30
   networkChannel: 1
   childObjectToSync: {fileID: 0}

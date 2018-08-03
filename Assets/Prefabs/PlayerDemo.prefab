@@ -273,6 +273,7 @@ MonoBehaviour:
   PaintRenderer: {fileID: 212462578179679062}
   speed: 0.1
   fireRate: 0.2
+  shotTimeLeft: 0
   projectile: {fileID: 1135003778089410, guid: 7be935653b256504ba46ef8d2d6e9180, type: 2}
   currentColor: {r: 0.8392157, g: 1, b: 1, a: 1}
   originalColor: {r: 0.8392157, g: 1, b: 1, a: 1}
@@ -287,6 +288,7 @@ MonoBehaviour:
     type: 2}
   PlayerCameraObject: {fileID: 0}
   healthText: {fileID: 102279298915076782}
+  buttonFingerID: -1
 --- !u!114 &114542590141938762
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -314,10 +316,10 @@ MonoBehaviour:
   snapPositionThreshold: 0
   snapRotationThreshold: 0
   snapScaleThreshold: 0
-  positionLerpSpeed: 0.85
+  positionLerpSpeed: 0.99
   rotationLerpSpeed: 0.85
   scaleLerpSpeed: 0.85
-  timeCorrectionSpeed: 0.01
+  timeCorrectionSpeed: 0.33
   snapTimeThreshold: 5
   syncPosition: 1
   syncRotation: 2

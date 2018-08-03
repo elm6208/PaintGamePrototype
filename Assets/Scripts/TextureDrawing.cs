@@ -15,6 +15,9 @@ public class TextureDrawing : NetworkBehaviour {
     public List<Color> allColors;
     protected List<int> ColorPercentages = new List<int>();
 
+    [SyncVar]
+    string displayText = "";
+
     public int leadingColor;
 
     //edges of plane
@@ -181,6 +184,12 @@ public class TextureDrawing : NetworkBehaviour {
             {
                 StartCoroutine("CountColors");
 
+                displayText = "";
+
+                for (int i = 0; i < ColorPercentages.Count; i++)
+                {
+                    displayText = displayText + "Color " + (i + 1) + ": " + ColorPercentages[i] + "%, ";
+                }
             }
         }
         UpdateUI();
@@ -254,13 +263,7 @@ public class TextureDrawing : NetworkBehaviour {
 
     public void UpdateUI()
     {
-        string displayText = "";
-
-        for (int i = 0; i < ColorPercentages.Count; i++)
-        {
-            displayText = displayText + "Color " + (i + 1) + ": " + ColorPercentages[i] + "%, ";
-        }
-
+        
         colorText.text = displayText;
     }
 

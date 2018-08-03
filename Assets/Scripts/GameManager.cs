@@ -7,6 +7,7 @@ using UnityEngine.Networking;
 public class GameManager : NetworkBehaviour {
     [SyncVar]
     public float TotalTime = 200f;
+    [SyncVar]
     public float timeLeft;
     public Text endGameText;
     public Text timerText;
@@ -16,6 +17,9 @@ public class GameManager : NetworkBehaviour {
 
     [SyncVar]
     public bool gameIsActive = false;
+
+    [SyncVar]
+    private string endGameStr = "GAME OVER";
 
     public Player topPlayer;
     private List<GameObject> allPlayers;
@@ -63,7 +67,6 @@ public class GameManager : NetworkBehaviour {
         topPlayer = allPlayers[0].GetComponent<Player>();
 
         endGameText.gameObject.SetActive(false);
-
     }
 	
 	// Update is called once per frame
@@ -94,9 +97,7 @@ public class GameManager : NetworkBehaviour {
     [ClientRpc]
     private void RpcEndGame()
     {
-        //display game over text
-        endGameText.gameObject.SetActive(true);
-        endGameText.text = "GAME OVER: COLOR " + textureDrawing.leadingColor + " WINS";
+        
         gameOver = true;
 
         //destroy all projectiles
@@ -117,9 +118,11 @@ public class GameManager : NetworkBehaviour {
             }
         }
 
-        //display Top Player, currently names are just numbered
-        endGameText.text = endGameText.text + ", TOP PLAYER: " + topPlayer.playerName;
+        //display game over text, display Top Player, currently names are just numbered
+        endGameStr = "GAME OVER: COLOR " + textureDrawing.leadingColor + " WINS, TOP PLAYER: " + topPlayer.playerName;
         
+        endGameText.gameObject.SetActive(true);
+        endGameText.text = endGameStr;
     }
 
     public void LocalPlayerShoot()

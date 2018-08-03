@@ -29,7 +29,8 @@ public class Player : NetworkBehaviour
     public Color currentColor;
 
     public Color originalColor;
-    
+
+    [SyncVar]
     public int numCaptured = 0; //how many other players they've captured
 
     [SyncVar]
@@ -161,6 +162,7 @@ override public void OnStartLocalPlayer()
 
     // Update is called once per frame
     void Update() {
+        
 
         if (identity.isLocalPlayer && PlayerCameraObject != null)
         {
@@ -316,9 +318,7 @@ override public void OnStartLocalPlayer()
                 {
                     buttonFingerID = -1;
                 }
-
-                PlayerObjectReferences.singleton.capturedText.text = "buttonFingerID: " + buttonFingerID;
-
+                
 #endif
 
 
@@ -395,7 +395,7 @@ override public void OnStartLocalPlayer()
             proj.color = currentColor;
 
             proj.parentPlayer = this.gameObject.GetComponent<Player>();
-            clone.transform.position = transform.position + transform.right * 2f;
+            clone.transform.position = transform.position + transform.right * 0.2f;
             clone.transform.rotation = transform.rotation;
             lastShot = Time.time;
             NetworkServer.Spawn(clone);
@@ -498,7 +498,7 @@ override public void OnStartLocalPlayer()
             //scaling will likely need to be adjusted later
             pWidth = (3 + Mathf.FloorToInt((currentSize - 1) / 3));
             startPWidth = pWidth;
-
+            
         }
 
         if (isLocalPlayer)
