@@ -13,6 +13,7 @@ public class TextureDrawing : NetworkBehaviour {
     public Text colorText;
 
     public List<Color> allColors;
+    public List<string> colorNames;
     protected List<int> ColorPercentages = new List<int>();
 
     [SyncVar]
@@ -78,105 +79,7 @@ public class TextureDrawing : NetworkBehaviour {
         {
             ColorPercentages.Add(0);
         }
-        /*
-        if (texture != null)
-        {
-            bool HaveChanges = false;
-            // leave a paint trail behind each player
-            var players = (NetworkManager.singleton as GameNetworkManager).players;
-            foreach (Player p in players)
-            {
-                if (p == null)
-                {
-                    continue;
-                }
-                var currentPosition = p.transform.position;
-
-                //only update if player moved
-                if (previousPositions.ContainsKey(p))
-                {
-                    var lastPosition = previousPositions[p];
-                    if (Vector3.Distance(currentPosition, lastPosition) < threshhold)
-                    {
-                      //  continue;
-                    }
-                }
-                previousPositions[p] = currentPosition;
-                HaveChanges = true;
-                //raycast down to find the spot below the player
-                Vector3 direction = new Vector3(0f, 0f, 1f);
-                Ray ray = new Ray(new Vector3(p.transform.position.x, p.transform.position.y, p.transform.position.z), direction);
-                RaycastHit hit;
-
-                //if there is a hit, draw player's paint trail
-                if (Physics.Raycast(ray, out hit, Mathf.Infinity))
-                {
-
-                    Vector2 uv;
-                    uv.x = (hit.point.x - hit.collider.bounds.min.x) / hit.collider.bounds.size.x;
-                    uv.y = (hit.collider.bounds.min.y - hit.point.y) / hit.collider.bounds.size.y;
-
-                    Color pColor = p.currentColor;
-
-
-                    //position to draw set of pixels from, subtract half of trail width to center it
-                    float xPos = texture.width - (uv.x * texture.width) - ((p.pWidth * scale) / 2);
-                    float yPos = texture.height - (-uv.y * texture.height) - ((p.pWidth * scale) / 2);
-
-
-                    //corners of square being drawn
-                    float minX = xPos - p.pWidth;
-                    float maxX = xPos;
-                    float minY = yPos;
-                    float maxY = yPos + p.pWidth;
-
-                    Debug.Log("xPos: " + xPos + ", yPos: " + yPos);
-
-                    //find difference between corner and plane edge, move square corner accordingly to avoid going off the edge
-                    //this currently causes a snapping effect with the trail when approaching some of the walls
-                    if (minX - (p.pWidth * scale / 2) < planeMinX)
-                    {
-                        xPos = planeMinX;
-                    }
-                    if ((maxX + (p.pWidth * scale)) > planeMaxX)
-                    {
-                        xPos = planeMaxX - (p.pWidth * scale);
-                    }
-                    if (minY - (p.pWidth * scale / 2) < planeMinY)
-                    {
-                        yPos = planeMinY;
-                    }
-                    if (maxY > planeMaxY)
-                    {
-                        yPos = planeMaxY - (p.pWidth * scale);
-                    }
-
-                    //make color array to draw
-                    Color[] colors = new Color[p.pWidth * p.pWidth * scale * scale];
-
-                    for (int i = 0; i < colors.Length; i++)
-                    {
-                        colors[i] = pColor;
-                    }
-
-                    texture.SetPixels((int)xPos, (int)yPos, p.pWidth * scale, p.pWidth * scale, colors);
-
-                }
-
-
-
-
-            }
-
-            if (HaveChanges)
-            {
-                //applies SetPixels
-                texture.Apply();
-            }
-
-        }
-
-    */
+        
 
         if (isServer)
         {
@@ -188,7 +91,7 @@ public class TextureDrawing : NetworkBehaviour {
 
                 for (int i = 0; i < ColorPercentages.Count; i++)
                 {
-                    displayText = displayText + "Color " + (i + 1) + ": " + ColorPercentages[i] + "%, ";
+                    displayText = displayText + colorNames[i] + ": " + ColorPercentages[i] + "%, ";
                 }
             }
         }
@@ -253,7 +156,7 @@ public class TextureDrawing : NetworkBehaviour {
             if(percentage > highestPercent)
             {
                 highestPercent = percentage;
-                leadingColor = k + 1;
+                leadingColor = k;
             }
         }
 
@@ -267,9 +170,21 @@ public class TextureDrawing : NetworkBehaviour {
         colorText.text = displayText;
     }
 
+    //im the server, tell clients to reset
+    public void ResetOnServer()
+    {
+        if(isServer)
+        {
+            RpcReset();
+
+        }
+    }
+
+
     [ClientRpc]
     public void RpcReset()
     {
+        Debug.Log("ClientRpc RpcReset Called!");
         ResetBoard();
     }
 

@@ -36,6 +36,9 @@ public class PickupSpawner : NetworkBehaviour {
 
     public void SpawnPickup(Transform reference)
     {
+        if (!isActiveAndEnabled)
+            return;
+
         int pickupNum = Random.Range(0, PickupPrefabs.Count);
 
         var prefab = GameObject.Instantiate(PickupPrefabs[pickupNum]);

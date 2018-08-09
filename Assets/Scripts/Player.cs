@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 using UnityEngine.EventSystems;
+using Smooth;
 
 [RequireComponent(typeof(NetworkIdentity))]
 
@@ -19,6 +20,9 @@ public class Player : NetworkBehaviour
     public float fireRate;
 
     [SyncVar]
+    public bool isMoving = false;
+
+    [SyncVar]
     public float shotTimeLeft = 0.0f;
 
     [SyncVar]
@@ -28,9 +32,10 @@ public class Player : NetworkBehaviour
     [SyncVar(hook ="SetColor")]
     public Color currentColor;
 
+    [SyncVar]
     public Color originalColor;
 
-    [SyncVar]
+    [SyncVar(hook = "SetNumCaptured")]
     public int numCaptured = 0; //how many other players they've captured
 
     [SyncVar]
@@ -39,27 +44,31 @@ public class Player : NetworkBehaviour
     [SyncVar]
     public int health = 3;
     
+ 
     private Collider2D cCollider;
     private GameManager gameManager;
     
+    [SyncVar]
     public string playerName;
 
     public static Player localPlayer;
-    private Vector3 originalScale = Vector3.zero; //original size to revert to when captured
 
     [SyncVar]
-    public int currentSize = 1;
+    private Vector3 originalScale = Vector3.zero; //original size to revert to when captured
+
+    [SyncVar(hook = "SetCurrentSize")]
+    public int currentSize = 0;
 
     [SyncVar]
     public float width; //width of player
  
-    [SyncVar]
-    public int pWidth; // width of paint trail
 
     public GameObject PlayerCameraPrefab;
     public GameObject PlayerCameraObject;
 
     public TextMesh healthText;
+
+    //public Text gameOverText;
 
     //for speed up powerup
     [SyncVar]
@@ -77,63 +86,80 @@ public class Player : NetworkBehaviour
 
     [SyncVar]
     private float trailPowerUpTimeLeft = 10;
-
-    [SyncVar] 
-    private int startPWidth; // holds original trail size to return to when trail powerup ends
+    
 
     [SyncVar]
     public int buttonFingerID = -1;
 
-    private GameObject forwardIndicator;
+    public GameObject forwardIndicator;
+
+    [SyncVar(hook = "SetTeamColor")]
+    private Color teamColor;
 
     static int which = 0;
     // Use this for initialization
     void Start() {
         rbody2d = GetComponent<Rigidbody2D>();
-        PaintRenderer.color = currentColor;
+        SetColor(originalColor);
 
         originalScale = transform.lossyScale;
         cCollider = GetComponent<Collider2D>();
         gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
 
         forwardIndicator = transform.GetChild(0).gameObject;
-        
+
+        SetTeamColor(originalColor);
     }
 
-override public void OnStartLocalPlayer()
+    public void OnEnable()
+    {
+        GameManager.instance.allPlayers.Add(this.gameObject);
+    }
+
+    public void OnDisable()
+    {
+        GameManager.instance.allPlayers.Remove(this.gameObject);
+    }
+
+    override public void OnStartLocalPlayer()
     {
         base.OnStartLocalPlayer();
-        localPlayer = this;
+        localPlayer = this;  
         Debug.Log("IS LOCAL PLAYER");
         PlayerCameraObject = Instantiate(PlayerCameraPrefab);
 
         var campos = this.transform.position;
         campos.z = PlayerCameraObject.transform.position.z;
         PlayerCameraObject.transform.position = campos;
+        
     }
 
     override public void OnStartServer()
     {
 
         base.OnStartServer();
-        pWidth = 3;
+        //pWidth = 3;
         var colors = TextureDrawing.instance.allColors;
 
         //Im a non player
         if (identity.playerControllerId == -1)
         {
-            currentColor = originalColor;
+            originalColor = colors[which];
+            SetColor(originalColor);
+
+            which = (which + 1) % colors.Count;
         }
         else
         {
             //int which = (int)Random.Range(0, colors.Length - 1);
-            currentColor = colors[which];
+            originalColor = colors[which];
+            SetColor(originalColor);
 
             which = (which + 1) % colors.Count;
         }
         healthText.GetComponent<Renderer>().sortingOrder = GetComponent<SpriteRenderer>().sortingOrder + 1;
         startSpeed = speed;
-        startPWidth = pWidth;
+        SetTeamColor(originalColor);
     }
 
 
@@ -157,12 +183,49 @@ override public void OnStartLocalPlayer()
         currentColor = color;
         GetComponent<SpriteRenderer>().color = color;
         PaintRenderer.color = color;
+    }
 
+    public void SetTeamColor(Color color)
+    {
+        teamColor = color;
+        forwardIndicator.GetComponent<SpriteRenderer>().color = color;
+    }
+
+    public void SetNumCaptured(int num)
+    {
+        numCaptured = num;
+        //update text here
+        if (identity.isLocalPlayer)
+        {
+            PlayerObjectReferences.singleton.capturedText.text = "Captured: " + numCaptured;
+        }
+    }
+
+    public void SetCurrentSize(int num)
+    {
+        currentSize = num;
+        this.gameObject.transform.localScale = (originalScale + (new Vector3(0.5F, 0.5F, 0)) * currentSize);
     }
 
     // Update is called once per frame
     void Update() {
+        bool shouldMove = false;
         
+
+        //make separate function for this
+        if (identity.isLocalPlayer)
+        {
+            if (playerName == null)
+            {
+                Debug.Log("SORRY NO NAME");
+            }
+            else
+            {
+                PlayerObjectReferences.singleton.playerNameText.text = playerName;
+            }
+            
+            
+        }
 
         if (identity.isLocalPlayer && PlayerCameraObject != null)
         {
@@ -203,20 +266,17 @@ override public void OnStartLocalPlayer()
                     if (trailPowerUpTimeLeft > 0)
                     {
                         trailPowerUpTimeLeft -= Time.deltaTime;
-                        pWidth = (int)(startPWidth * 2);
                     }
                     if (trailPowerUpTimeLeft <= 0)
                     {
                         trailPowerUpActive = false;
-                        pWidth = startPWidth;
                     }
                 }
             }
 
-            if (identity.isLocalPlayer && identity.localPlayerAuthority)
+            if (identity.isLocalPlayer )
             {
 #if UNITY_EDITOR || UNITY_STANDALONE_WIN
-
                 // Move character towards mouse if right click is held down
                 if (Input.GetMouseButton(0))
                 {
@@ -235,23 +295,18 @@ override public void OnStartLocalPlayer()
                             if (dontSkip)
                             {
 
-                                transform.position = Vector3.MoveTowards(transform.position, target, speed);
+                            Vector3 difference = ScreenToWorld(Input.mousePosition) - transform.position;
+                            difference.Normalize();
+                            float z_rotation = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
+                            Quaternion quat = Quaternion.Euler(0f, 0f, z_rotation);
+                            CmdMoveToward(quat);
+                            shouldMove = true;
 
-                                Vector3 pos = transform.position;
-                                pos.z = 0;
-                                transform.position = pos;
-
-                                //get rotation to set ball to
-                                Vector3 difference = ScreenToWorld(Input.mousePosition) - transform.position;
-                                difference.Normalize();
-                                float z_rotation = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
-                                transform.rotation = Quaternion.Euler(0f, 0f, z_rotation);
-
-                            }
+                        }
                         
                     }
                     
-                        
+                       
 
 
                 }
@@ -263,7 +318,6 @@ override public void OnStartLocalPlayer()
 #endif
 
 #if UNITY_ANDROID
-
                 if(Input.touchCount > 0)
                 {
                     foreach(Touch touch in Input.touches)
@@ -280,33 +334,24 @@ override public void OnStartLocalPlayer()
                          //if ((EventSystem.current.currentSelectedGameObject == null) || (EventSystem.current.currentSelectedGameObject.tag != "Button"))
                             {
                             
-                            
-                            
-                                bool dontSkip = true;
                                 //get position to set ball to
                                 var target = ScreenToWorld(touch.position);
+                            
 
-                                //if target is equal to the current position, skip the below portion
-                                if (target == transform.position)
-                                {
-                                    dontSkip = false;
-                                }
-                                if (dontSkip)
-                                {
+                                    Vector3 pos = Vector3.MoveTowards(transform.position, target, speed);
 
-                                    transform.position = Vector3.MoveTowards(transform.position, target, speed);
-
-                                    Vector3 pos = transform.position;
                                     pos.z = 0;
-                                    transform.position = pos;
+
+              
 
                                     //get rotation to set ball to
-                                    Vector3 difference = ScreenToWorld(touch.position) - transform.position;
-                                    difference.Normalize();
-                                    float z_rotation = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
-                                    transform.rotation = Quaternion.Euler(0f, 0f, z_rotation);
-
-                                }
+                                        Vector3 difference = ScreenToWorld(touch.position) - transform.position;
+                                       difference.Normalize();
+                                        float z_rotation = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
+                                        Quaternion quat = Quaternion.Euler(0f, 0f, z_rotation);
+                                CmdMoveToward(quat);
+                                shouldMove = true;
+                                
 
                             
                         }
@@ -319,13 +364,9 @@ override public void OnStartLocalPlayer()
                     buttonFingerID = -1;
                 }
                 
+
 #endif
-
-
-
-
-
-
+                
             }
             else
             //temp behavior for non-human players, they just shoot repeatedly
@@ -339,12 +380,45 @@ override public void OnStartLocalPlayer()
             }
             
         }
+
+        if (shouldMove != isMoving && isLocalPlayer)
+
+        {
+            if (isServer)
+            {
+                isMoving = shouldMove;
+            }
+            else
+            {
+                CmdShouldMove(shouldMove);
+            }
+        }
+
+        if (isMoving && isServer)
+        {
+            this.transform.position = this.transform.position + this.transform.right * this.speed;
+
+        }
+
     }
-    
+
+    [Command]
+    public void CmdShouldMove(bool val)
+    {
+        isMoving = val;
+    }
+
+    [Command]
+    public void CmdMoveToward(Quaternion rotation)
+    {
+        this.transform.rotation = rotation;
+
+    }
+
     //tries to fire a projectile
     public void TryToShoot()
     {
-        if (identity.isLocalPlayer && identity.localPlayerAuthority)
+        if (identity.isLocalPlayer && gameManager.gameOver == false)
         {
             if (Time.time > fireRate + lastShot)
             {
@@ -392,7 +466,7 @@ override public void OnStartLocalPlayer()
             GameObject clone = Instantiate(projectile) as GameObject;
             
             var proj = clone.GetComponent<Projectile>();
-            proj.color = currentColor;
+            proj.color = teamColor;
 
             proj.parentPlayer = this.gameObject.GetComponent<Player>();
             clone.transform.position = transform.position + transform.right * 0.2f;
@@ -426,6 +500,10 @@ override public void OnStartLocalPlayer()
     public void ScramblePosition()
     {
         transform.position = NetworkManager.singleton.GetStartPosition().position;
+
+        var ns = GetComponent<SmoothSync>();
+        ns.teleport();
+
         RpcResetCamera();
 
     }
@@ -435,23 +513,24 @@ override public void OnStartLocalPlayer()
     {
         if (identity.isServer)
         {
-            if (currentColor != c)
+            if (teamColor != c)
             {
                 health -= 1;
                 if (health <= 0)
                 {
+
+
+
                     //when player is killed
-                    currentColor = c;
+                    SetColor(c);
 
                     attackingPlayer.GetComponent<Player>().Capture(this);
 
                     health = 3;
                     maxHealth = 3;
-                    transform.localScale = originalScale;
-                    currentSize = 1;
+
+                    SetCurrentSize(0);
                     width = cCollider.bounds.size.x;
-                    pWidth = 3;
-                    startPWidth = pWidth;
 
                     ScramblePosition();
 
@@ -462,8 +541,66 @@ override public void OnStartLocalPlayer()
 
                     //if trail powerup is active, end it. trail size reset above
                     trailPowerUpActive = false;
+
+                    gameManager.CheckIfAllOneColor();
+                    CheckIfTeamConverted(teamColor);
+                    
                 }
             }
+        }
+    }
+    
+    //check if the entire team has had their color converted
+    private void CheckIfTeamConverted(Color playerTeamColor)
+    {
+        bool isTeamConverted = true;
+
+        foreach(GameObject p in GameManager.instance.allPlayers)
+        {
+            Player play = p.GetComponent<Player>();
+
+            //if player is on their team, check if they are converted
+            if(play.teamColor == playerTeamColor)
+            {
+                if (play.currentColor == play.teamColor)
+                {
+                    isTeamConverted = false;
+                }
+            }
+            
+        }
+
+        //if the team has been converted, change all of their team colors to their current color
+        if(isTeamConverted)
+        {
+            foreach (GameObject p in GameManager.instance.allPlayers)
+            {
+                Player play = p.GetComponent<Player>();
+                if(play.currentColor != play.teamColor)
+                {
+                    if (play.currentColor == playerTeamColor)
+                    {
+                        play.SetColor(play.teamColor);
+                    }
+                    if (play.teamColor == playerTeamColor)
+                    {
+                        play.SetTeamColor(play.currentColor);
+                    }
+                }
+                
+                
+                
+            }
+
+            string eliminatedTeam = "x";
+            for(int i = 0; i < TextureDrawing.instance.allColors.Count; i++)
+            {
+                if (TextureDrawing.instance.allColors[i] == playerTeamColor)
+                {
+                    eliminatedTeam = TextureDrawing.instance.colorNames[i];
+                }
+            }
+            gameManager.RpcDisplayEliminatedText(eliminatedTeam);
         }
     }
 
@@ -480,31 +617,29 @@ override public void OnStartLocalPlayer()
         if (identity.isServer)
         {
             //increase size by 1/2 of captured player's size, ints are rounded
-            int toIncrease = ((capturedPlayer.currentSize + 1) / 2);
+            int toIncrease = ((capturedPlayer.currentSize + 4) / 2);
 
-            //grow after capturing
-            this.gameObject.transform.localScale += ((new Vector3(0.5F, 0.5F, 0)) * toIncrease);
-
-            currentSize += toIncrease;
-            numCaptured += 1;
+            SetCurrentSize(currentSize + toIncrease);
+            SetNumCaptured(numCaptured + 1);
+            
             width = cCollider.bounds.size.x;
 
             //calculate new health with size scaling
             int newHealth = (2 + currentSize) - (maxHealth - health);
             health = newHealth;
             maxHealth = 2 + currentSize;
-
-            //increase trail width with every 3 captured
-            //scaling will likely need to be adjusted later
-            pWidth = (3 + Mathf.FloorToInt((currentSize - 1) / 3));
-            startPWidth = pWidth;
             
         }
+        
 
-        if (isLocalPlayer)
-        {
-            PlayerObjectReferences.singleton.capturedText.text = "Captured: " + numCaptured;
-        }
+
+    }
+    
+
+    [ClientRpc]
+    private void RpcSetScale()
+    {
+        this.gameObject.transform.localScale = (originalScale + (new Vector3(0.5F, 0.5F, 0)) * currentSize);
     }
 
     public void SpeedPowerUp()

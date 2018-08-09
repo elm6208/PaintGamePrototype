@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using Smooth;
 
 public class GameNetworkManager : NetworkManager {
 
@@ -20,6 +21,9 @@ public class GameNetworkManager : NetworkManager {
         foreach (var player in players)
         {
             player.ScramblePosition();
+
+            var ns = player.GetComponent<SmoothSync>();
+            ns.teleport();
         }
     }
 
@@ -41,7 +45,7 @@ public class GameNetworkManager : NetworkManager {
 
         players = PlayersList;
         
-        ConnectionStateManager.singleton.RpcUpdateConnectedPlayersState();
+        ConnectionStateManager.singleton.RpcUpdateConnectedPlayersState(GameNetworkManager.game.numPlayers);
     }
 
     public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId)

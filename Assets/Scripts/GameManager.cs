@@ -10,8 +10,16 @@ public class GameManager : NetworkBehaviour {
     [SyncVar]
     public float timeLeft;
     public Text endGameText;
+    public GameObject endGamePanel;
     public Text timerText;
-    
+
+    public GameObject nonPlayer;
+
+    public Text eliminatedTeamText;
+
+    [SyncVar]
+    public float eTextTimer;
+
     [SyncVar]
     public bool gameOver;
 
@@ -21,19 +29,50 @@ public class GameManager : NetworkBehaviour {
     [SyncVar]
     private string endGameStr = "GAME OVER";
 
+    [SyncVar]
+    private bool allOneColor = false;
+
     public Player topPlayer;
-    private List<GameObject> allPlayers;
+    
+    public List<GameObject> allPlayers = new List<GameObject>();
     public TextureDrawing textureDrawing;
 
     public bool AutoStart = false;
 
+    public static GameManager instance;
+
+    public int numNonPlayers;
+
     // Use this for initialization
+    private void Awake()
+    {
+        instance = this;
+        
+    }
+
     void Start () {
         gameIsActive = false;
         if (AutoStart)
         {
             StartGame();
         }
+
+        //spawn nonplayers
+        if(isServer)
+        {
+            for (int i = 0; i < numNonPlayers; i++)
+            {
+                GameObject nonP = Instantiate(nonPlayer) as GameObject;
+                NetworkServer.Spawn(nonP);
+            }
+        }
+        
+        
+
+#if UNITY_ANDROID
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
+#endif
+
     }
 
     public void StartGame()
@@ -41,15 +80,16 @@ public class GameManager : NetworkBehaviour {
         if (!isServer)
             return;
 
+        allOneColor = false;
         timeLeft = TotalTime;
         gameIsActive = true;
         gameOver = false;
         //get all players
-        allPlayers = new List<GameObject>();
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-        GameObject[] nonPlayers = GameObject.FindGameObjectsWithTag("NonPlayer");
-        allPlayers.AddRange(players);
-        allPlayers.AddRange(nonPlayers);
+        //allPlayers = new List<GameObject>();
+        //GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        //GameObject[] nonPlayers = GameObject.FindGameObjectsWithTag("NonPlayer");
+        //allPlayers.AddRange(players);
+        //allPlayers.AddRange(nonPlayers);
 
         //name them
         for (int i = 0; i < allPlayers.Count; i++)
@@ -58,15 +98,21 @@ public class GameManager : NetworkBehaviour {
             currentP.playerName = "Player " + (i + 1);
             currentP.maxHealth = 3;
             currentP.health = currentP.maxHealth;
-            currentP.currentSize = 1;
-            currentP.numCaptured = 0;
+            currentP.currentSize = 0;
+            currentP.SetCurrentSize(0);
+            currentP.SetNumCaptured(0);
             currentP.ScramblePosition();
             currentP.SetColor(currentP.originalColor);
+            currentP.SetTeamColor(currentP.originalColor);
         }
 
         topPlayer = allPlayers[0].GetComponent<Player>();
 
-        endGameText.gameObject.SetActive(false);
+        RpcResetClientGame();
+
+
+
+        
     }
 	
 	// Update is called once per frame
@@ -83,14 +129,76 @@ public class GameManager : NetworkBehaviour {
         {
             DetermineIfEndGame();
         }
+
+        if(gameIsActive && Time.deltaTime > eTextTimer)
+        {
+            RpcHideEliminatedText();
+        }
+        
 	}
+
+    //check if all players have been converted to one color
+    public void CheckIfAllOneColor()
+    {
+        bool isColorDifferent = false;
+
+        for (int i = 0; i < allPlayers.Count; i++)
+        {
+            if(allPlayers[i].GetComponent<Player>().currentColor != allPlayers[0].GetComponent<Player>().currentColor)
+            {
+                isColorDifferent = true;
+            }
+        }
+
+        if(isColorDifferent == false)
+        {
+            allOneColor = true;
+        }
+    }
 
     public void DetermineIfEndGame()
     {
-        if (timeLeft <= 0)
+        if ((timeLeft <= 0) || allOneColor)
         {
+            timeLeft = 0;
+            timerText.text = "Time Remaining: " + (int)timeLeft;
+
+            endGameStr = "GAME OVER: " + textureDrawing.colorNames[textureDrawing.leadingColor] + " WINS, TOP PLAYER: " + topPlayer.playerName;
+
             RpcEndGame();
         }
+    }
+
+    // When a team is eliminated, notify players
+    [ClientRpc]
+    public void RpcDisplayEliminatedText(string teamName)
+    {
+        if(gameIsActive)
+        {
+            eliminatedTeamText.gameObject.SetActive(true);
+            eliminatedTeamText.text = teamName + " Team Eliminated!";
+            if (isServer)
+            {
+                eTextTimer = Time.deltaTime + 0.005f;
+            }
+        }
+        
+    }
+
+    [ClientRpc]
+    public void RpcHideEliminatedText()
+    {
+        eliminatedTeamText.gameObject.SetActive(false);
+        
+    }
+
+
+    [ClientRpc]
+    private void RpcResetClientGame()
+    {
+        endGameText.gameObject.SetActive(false);
+        endGamePanel.gameObject.SetActive(false);
+        eliminatedTeamText.gameObject.SetActive(false);
     }
 
     // End the game
@@ -99,30 +207,45 @@ public class GameManager : NetworkBehaviour {
     {
         
         gameOver = true;
-
-        //destroy all projectiles
-        GameObject[] projectiles = GameObject.FindGameObjectsWithTag("Projectile");
-
-        foreach(GameObject p in projectiles)
+        
+        //destroy all projectiles on server
+        if(isServer)
         {
-            Destroy(p);
-        }
+            GameObject[] projectiles = GameObject.FindGameObjectsWithTag("Projectile");
 
-        //count top player
-        foreach (GameObject play in allPlayers)
-        {
-            Player player = play.GetComponent<Player>();
-            if(player.numCaptured > topPlayer.numCaptured)
+            foreach (GameObject p in projectiles)
             {
-                topPlayer = player;
+                NetworkServer.Destroy(p);
             }
         }
 
         //display game over text, display Top Player, currently names are just numbered
-        endGameStr = "GAME OVER: COLOR " + textureDrawing.leadingColor + " WINS, TOP PLAYER: " + topPlayer.playerName;
-        
+        //endGameStr = "GAME OVER";
+        //count top player
+        foreach (GameObject play in allPlayers)
+        {
+            Player player = play.GetComponent<Player>();
+            if(play == null && player == null)
+            {
+                Debug.LogError("No player script on player!");
+                continue;
+            }
+            if(topPlayer == null)
+            {
+                topPlayer = player;
+            }
+
+            if (player.numCaptured > topPlayer.numCaptured)
+            {
+                topPlayer = player;
+            }
+        }
+        //endGameStr = "GAME OVER: COLOR " + textureDrawing.leadingColor + " WINS, TOP PLAYER: " + topPlayer.playerName;
+
         endGameText.gameObject.SetActive(true);
+        endGamePanel.gameObject.SetActive(true);
         endGameText.text = endGameStr;
+
     }
 
     public void LocalPlayerShoot()

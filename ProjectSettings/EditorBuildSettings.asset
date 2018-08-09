@@ -20,7 +20,10 @@ EditorBuildSettings:
   - enabled: 0
     path: 
     guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: Assets/__DELETED_GUID_Trash/93ad0f06d01db2249926d398ca1bf23a
+    guid: 93ad0f06d01db2249926d398ca1bf23a
   - enabled: 1
     path: Assets/Scenes/DemoMultiplayerClient.unity
-    guid: 93ad0f06d01db2249926d398ca1bf23a
+    guid: 6150d6af024f565448e34177fff184d5
   m_configObjects: {}

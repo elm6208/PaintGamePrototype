@@ -40,6 +40,8 @@ public class NetClient : NetworkDiscovery
                     NetworkManager.singleton.networkAddress = fromAddress; //items[1];
                     NetworkManager.singleton.networkPort = Convert.ToInt32(items[2]);
                     NetworkManager.singleton.StartClient();
+
+                   // this.enabled = false;
                 }
             }
         }

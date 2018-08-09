@@ -7,8 +7,7 @@ using UnityEngine.Networking;
 public class ConnectionStateManager : NetworkBehaviour {
     public static ConnectionStateManager singleton;
     public Text ConnectedPlayers;
-
-    [SyncVar]
+    
     public int NumConnected = 0;
     private void Awake()
     {
@@ -16,8 +15,9 @@ public class ConnectionStateManager : NetworkBehaviour {
     }
 
     [ClientRpc]
-    public void RpcUpdateConnectedPlayersState()
+    public void RpcUpdateConnectedPlayersState(int num)
     {
+        NumConnected = num;
         ConnectedPlayers.text = "Connected Players: " + NumConnected;
     }
 

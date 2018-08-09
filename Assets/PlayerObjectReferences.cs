@@ -12,5 +12,6 @@ public class PlayerObjectReferences : MonoBehaviour {
     }
 
     public Text capturedText;
+    public Text playerNameText;
     
 }
