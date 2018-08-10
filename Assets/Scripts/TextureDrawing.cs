@@ -47,24 +47,7 @@ public class TextureDrawing : NetworkBehaviour {
     // Use this for initialization
     void Start () {
 
-       // texture = new Texture2D(192*2, 108*2);
         rend = GetComponent<MeshRenderer>();
-        // texture.filterMode = FilterMode.Point;
-
-        //set plane values
-        /*
-        float planeWidth = texture.width;
-        float planeHeight = texture.height;
-
-        planeMinX = 0;
-        planeMaxX = planeWidth;
-        planeMinY = 0;
-        planeMaxY = planeHeight;
-
-        ResetBoard();
-        rend.material.mainTexture = texture;
-        */
-
         ResetBoard();
         rend.material.mainTexture = colorTexture;
 
@@ -74,13 +57,11 @@ public class TextureDrawing : NetworkBehaviour {
     // Update is called once per frame
     void Update()
     {
-
         while (ColorPercentages.Count < allColors.Count)
         {
             ColorPercentages.Add(0);
         }
         
-
         if (isServer)
         {
             if( !isCounting)
@@ -114,13 +95,13 @@ public class TextureDrawing : NetworkBehaviour {
 
         int maxPerFrame = 5000;
         int currentCount = 0;
+
         //count pixels of each individual color
         for (int i = 0; i < colors.Length; i++)
         {
             currentCount += 1;
             Color colorC = colors[i];
-
-
+            
             //rounding due to GetPixels returning inaccurate color values, there may be some colors that are not detected correctly so this may need to be adjusted
             int r = (int)(colorC.r * 100);
             int g = (int)(colorC.g * 100);
@@ -190,15 +171,6 @@ public class TextureDrawing : NetworkBehaviour {
 
     public void ResetBoard()
     {
-        /*
-        Color[] pixels = new Color[texture.width * texture.height];
-        for (int i = 0; i < pixels.Length; i++)
-        {
-            pixels[i] = emptyColor;
-        }
-        texture.SetPixels(pixels);
-        texture.Apply();
-        */
         Debug.Log("reset board called");
         RenderTexture rt = UnityEngine.RenderTexture.active;
         UnityEngine.RenderTexture.active = colorTexture;

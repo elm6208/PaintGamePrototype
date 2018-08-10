@@ -31,9 +31,7 @@ public class Projectile : NetworkBehaviour {
             rbody2d.AddForce(transform.right * 500);
         }
     }
-
-
-
+    
     void OnTriggerEnter2D(Collider2D col)
     {
         if (isServer)
@@ -47,7 +45,6 @@ public class Projectile : NetworkBehaviour {
             //hit an "enemy", or another player hits you
             if ((col.tag == "NonPlayer" || col.tag == "Player") && col.gameObject != parentPlayer.gameObject)
             {
-
                 Color c = GetComponent<SpriteRenderer>().color;
                 col.GetComponent<Player>().TakeHit(c, parentPlayer);
                 NetworkServer.Destroy(this.gameObject);

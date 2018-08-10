@@ -67,8 +67,7 @@ public class Player : NetworkBehaviour
     public GameObject PlayerCameraObject;
 
     public TextMesh healthText;
-
-    //public Text gameOverText;
+    
 
     //for speed up powerup
     [SyncVar]
@@ -97,6 +96,7 @@ public class Player : NetworkBehaviour
     private Color teamColor;
 
     static int which = 0;
+
     // Use this for initialization
     void Start() {
         rbody2d = GetComponent<Rigidbody2D>();
@@ -110,12 +110,14 @@ public class Player : NetworkBehaviour
 
         SetTeamColor(originalColor);
     }
-
+    
+    // add to player list on enable
     public void OnEnable()
     {
         GameManager.instance.allPlayers.Add(this.gameObject);
     }
 
+    //remove from player list on disable
     public void OnDisable()
     {
         GameManager.instance.allPlayers.Remove(this.gameObject);
@@ -127,36 +129,19 @@ public class Player : NetworkBehaviour
         localPlayer = this;  
         Debug.Log("IS LOCAL PLAYER");
         PlayerCameraObject = Instantiate(PlayerCameraPrefab);
-
         var campos = this.transform.position;
         campos.z = PlayerCameraObject.transform.position.z;
         PlayerCameraObject.transform.position = campos;
-        
     }
 
     override public void OnStartServer()
     {
-
         base.OnStartServer();
-        //pWidth = 3;
         var colors = TextureDrawing.instance.allColors;
 
-        //Im a non player
-        if (identity.playerControllerId == -1)
-        {
-            originalColor = colors[which];
-            SetColor(originalColor);
-
-            which = (which + 1) % colors.Count;
-        }
-        else
-        {
-            //int which = (int)Random.Range(0, colors.Length - 1);
-            originalColor = colors[which];
-            SetColor(originalColor);
-
-            which = (which + 1) % colors.Count;
-        }
+        originalColor = colors[which];
+        SetColor(originalColor);
+        which = (which + 1) % colors.Count;
         healthText.GetComponent<Renderer>().sortingOrder = GetComponent<SpriteRenderer>().sortingOrder + 1;
         startSpeed = speed;
         SetTeamColor(originalColor);
@@ -177,7 +162,7 @@ public class Player : NetworkBehaviour
         }
     }
 
-
+    // Set current color and paint trail color
     public void SetColor(Color color)
     {
         currentColor = color;
@@ -185,22 +170,25 @@ public class Player : NetworkBehaviour
         PaintRenderer.color = color;
     }
 
+    // set team color (forward indicator / "nose")
     public void SetTeamColor(Color color)
     {
         teamColor = color;
         forwardIndicator.GetComponent<SpriteRenderer>().color = color;
     }
 
+    // set number of times the player has captured another player
     public void SetNumCaptured(int num)
     {
         numCaptured = num;
-        //update text here
+        // update captured text
         if (identity.isLocalPlayer)
         {
             PlayerObjectReferences.singleton.capturedText.text = "Captured: " + numCaptured;
         }
     }
 
+    // scale player according to given size
     public void SetCurrentSize(int num)
     {
         currentSize = num;
@@ -211,8 +199,7 @@ public class Player : NetworkBehaviour
     void Update() {
         bool shouldMove = false;
         
-
-        //make separate function for this
+        // set player name text
         if (identity.isLocalPlayer)
         {
             if (playerName == null)
@@ -224,23 +211,20 @@ public class Player : NetworkBehaviour
                 PlayerObjectReferences.singleton.playerNameText.text = playerName;
             }
             
-            
         }
 
         if (identity.isLocalPlayer && PlayerCameraObject != null)
         {
-            //var campos = Vector3.MoveTowards(PlayerCameraObject.transform.position, this.transform.position, speed * 0.9f);
-
             var campos = Vector3.Lerp(PlayerCameraObject.transform.position, this.transform.position,1);
             campos.z = PlayerCameraObject.transform.position.z;
             PlayerCameraObject.transform.position = campos;
         }
+
         //if game is not over
         if(gameManager.gameOver == false)
         {
             healthText.text = "" + health;
-
-            //only allow controls for the player you're controlling
+            
             if (identity.isServer)
             {
                 shotTimeLeft = Time.time - (fireRate + lastShot);
@@ -276,10 +260,12 @@ public class Player : NetworkBehaviour
 
             if (identity.isLocalPlayer )
             {
+                //controls for windows
 #if UNITY_EDITOR || UNITY_STANDALONE_WIN
                 // Move character towards mouse if right click is held down
                 if (Input.GetMouseButton(0))
                 {
+                    // only move if not clicking over the fire button
                     if((EventSystem.current.currentSelectedGameObject == null) || (EventSystem.current.currentSelectedGameObject.tag != "Button"))
                     {
                         
@@ -306,9 +292,6 @@ public class Player : NetworkBehaviour
                         
                     }
                     
-                       
-
-
                 }
                 //on left click, fire a projectile
                 if (Input.GetMouseButton(1) || Input.GetKeyUp(KeyCode.Space))
@@ -316,10 +299,11 @@ public class Player : NetworkBehaviour
                     TryToShoot();
                 }
 #endif
-
+                // android controls
 #if UNITY_ANDROID
                 if(Input.touchCount > 0)
                 {
+                    // keep track of touches & fingerId
                     foreach(Touch touch in Input.touches)
                     {
                         if(buttonFingerID == -1 && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
@@ -327,33 +311,23 @@ public class Player : NetworkBehaviour
                             buttonFingerID = touch.fingerId;
                             
                         }
-
-                        // Having trouble separating button press from moving the player, for now you can't move and shoot
-                       //if(!EventSystem.current.IsPointerOverGameObject(touch.fingerId) && (touch.phase != TouchPhase.Ended && touch.phase != TouchPhase.Canceled))
+                        
                             if((touch.fingerId != buttonFingerID) && (touch.phase != TouchPhase.Ended && touch.phase != TouchPhase.Canceled))
-                         //if ((EventSystem.current.currentSelectedGameObject == null) || (EventSystem.current.currentSelectedGameObject.tag != "Button"))
                             {
                             
                                 //get position to set ball to
                                 var target = ScreenToWorld(touch.position);
-                            
+                            Vector3 pos = Vector3.MoveTowards(transform.position, target, speed);
+                            pos.z = 0;
 
-                                    Vector3 pos = Vector3.MoveTowards(transform.position, target, speed);
-
-                                    pos.z = 0;
-
-              
-
-                                    //get rotation to set ball to
-                                        Vector3 difference = ScreenToWorld(touch.position) - transform.position;
-                                       difference.Normalize();
-                                        float z_rotation = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
-                                        Quaternion quat = Quaternion.Euler(0f, 0f, z_rotation);
-                                CmdMoveToward(quat);
-                                shouldMove = true;
+                            //get rotation to set ball to
+                            Vector3 difference = ScreenToWorld(touch.position) - transform.position;
+                            difference.Normalize();
+                            float z_rotation = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
+                            Quaternion quat = Quaternion.Euler(0f, 0f, z_rotation);
+                            CmdMoveToward(quat);
+                            shouldMove = true;
                                 
-
-                            
                         }
                             
                         
@@ -364,11 +338,11 @@ public class Player : NetworkBehaviour
                     buttonFingerID = -1;
                 }
                 
-
 #endif
                 
             }
             else
+
             //temp behavior for non-human players, they just shoot repeatedly
             if (identity.playerControllerId == -1)
             {
@@ -382,7 +356,6 @@ public class Player : NetworkBehaviour
         }
 
         if (shouldMove != isMoving && isLocalPlayer)
-
         {
             if (isServer)
             {
@@ -448,13 +421,10 @@ public class Player : NetworkBehaviour
 
             return hit.point;
             
-            
         }
         
         //if ray hits nothing, player stays in place
         return transform.position;
-        
-        
     }
 
     //When firing, instantiates a new projectile and sets its color to the player's color
@@ -497,6 +467,7 @@ public class Player : NetworkBehaviour
         }
     }
 
+    // scramble start position and teleport player to it
     public void ScramblePosition()
     {
         transform.position = NetworkManager.singleton.GetStartPosition().position;
@@ -518,9 +489,6 @@ public class Player : NetworkBehaviour
                 health -= 1;
                 if (health <= 0)
                 {
-
-
-
                     //when player is killed
                     SetColor(c);
 
@@ -534,12 +502,11 @@ public class Player : NetworkBehaviour
 
                     ScramblePosition();
 
-
                     //if speed powerup is active, end it
                     speedPowerUpActive = false;
                     speed = startSpeed;
 
-                    //if trail powerup is active, end it. trail size reset above
+                    //if trail powerup is active, end it
                     trailPowerUpActive = false;
 
                     gameManager.CheckIfAllOneColor();
@@ -554,7 +521,7 @@ public class Player : NetworkBehaviour
     private void CheckIfTeamConverted(Color playerTeamColor)
     {
         bool isTeamConverted = true;
-
+        Debug.Log("ALL PLAYERS COUNT:"+GameManager.instance.allPlayers.Count);
         foreach(GameObject p in GameManager.instance.allPlayers)
         {
             Player play = p.GetComponent<Player>();
@@ -588,10 +555,9 @@ public class Player : NetworkBehaviour
                     }
                 }
                 
-                
-                
             }
 
+            // find which color team was eliminated and send the color name
             string eliminatedTeam = "x";
             for(int i = 0; i < TextureDrawing.instance.allColors.Count; i++)
             {
@@ -631,23 +597,23 @@ public class Player : NetworkBehaviour
             
         }
         
-
-
     }
     
-
+    // set player scale on client
     [ClientRpc]
     private void RpcSetScale()
     {
         this.gameObject.transform.localScale = (originalScale + (new Vector3(0.5F, 0.5F, 0)) * currentSize);
     }
 
+    // start speed power up
     public void SpeedPowerUp()
     {
         speedPowerUpActive = true;
         speedPowerUpTimeLeft = 10;
     }
 
+    //start trail power up
     public void TrailPowerUp()
     {
         trailPowerUpActive = true;
