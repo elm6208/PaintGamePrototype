@@ -301,6 +301,9 @@ MonoBehaviour:
   PlayerCameraPrefab: {fileID: 0}
   PlayerCameraObject: {fileID: 0}
   healthText: {fileID: 102944075031047404}
+  speedPowerUpActive: 0
+  startSpeed: 0
+  trailPowerUpActive: 0
   buttonFingerID: -1
   forwardIndicator: {fileID: 1300526995452130}
 --- !u!114 &114868175610033154

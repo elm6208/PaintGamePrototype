@@ -96,6 +96,13 @@ public class GameManager : NetworkBehaviour {
             currentP.ScramblePosition();
             currentP.SetColor(currentP.originalColor);
             currentP.SetTeamColor(currentP.originalColor);
+
+            //if speed powerup is active, end it
+            currentP.speedPowerUpActive = false;
+            currentP.speed = currentP.startSpeed;
+
+            //if trail powerup is active, end it
+            currentP.trailPowerUpActive = false;
         }
 
         //reset topPlayer

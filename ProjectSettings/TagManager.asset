@@ -23,7 +23,7 @@ TagManager:
   - PostProcessing
   - Lines
   - Paint
-  - 
+  - Projectiles
   - 
   - 
   - 
@@ -45,8 +45,17 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Paint
+    uniqueID: 2958004401
+    locked: 0
+  - name: Projectiles
+    uniqueID: 2422281179
+    locked: 0
   - name: Lines
     uniqueID: 2399562229
+    locked: 0
+  - name: HealthText
+    uniqueID: 2278652647
     locked: 0
   - name: Default
     uniqueID: 0

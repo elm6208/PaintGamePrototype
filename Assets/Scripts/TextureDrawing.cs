@@ -183,6 +183,9 @@ public class TextureDrawing : NetworkBehaviour {
     [ClientRpc]
     public void RpcPaintExplosion(Color c, Vector3 pos, int explosionDiameter)
     {
+
+
+
         /*
         //array of color to fill
         Color[] colors = new Color[explosionDiameter * explosionDiameter];

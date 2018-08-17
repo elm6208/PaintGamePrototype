@@ -71,17 +71,17 @@ public class Player : NetworkBehaviour
 
     //for speed up powerup
     [SyncVar]
-    private bool speedPowerUpActive = false;
+    public bool speedPowerUpActive = false;
 
     [SyncVar]
     private float speedPowerUpTimeLeft = 10;
 
     [SyncVar]
-    private float startSpeed; // holds original speed to return to when speed powerup ends
+    public float startSpeed; // holds original speed to return to when speed powerup ends
 
     //for trail powerup
     [SyncVar]
-    private bool trailPowerUpActive = false;
+    public bool trailPowerUpActive = false;
 
     [SyncVar]
     private float trailPowerUpTimeLeft = 10;
@@ -146,7 +146,7 @@ public class Player : NetworkBehaviour
         startSpeed = speed;
         SetTeamColor(originalColor);
     }
-
+    
 
     NetworkIdentity _identity;
     NetworkIdentity identity
@@ -509,10 +509,15 @@ public class Player : NetworkBehaviour
                     //if trail powerup is active, end it
                     trailPowerUpActive = false;
 
-                    gameManager.CheckIfAllOneColor();
-                    CheckIfTeamConverted(teamColor);
                     
+                    CheckIfTeamConverted(teamColor);
+                    gameManager.CheckIfAllOneColor();
+
                 }
+            }
+            if(teamColor == c)
+            {
+                SetColor(c);
             }
         }
     }
